@@ -1,0 +1,59 @@
+<!doctype html><html><head><meta charset="utf-8"><title>MOON SIGNALS</title>
+<style>
+*{box-sizing:border-box}html,body{height:100%}body{margin:0;background:#0b0b0d;color:#eee;font-family:Montserrat,Inter,system-ui,Segoe UI,Arial,sans-serif;display:flex;flex-direction:column}
+.top{display:flex;align-items:center;gap:18px;padding:10px 24px;flex-wrap:wrap}
+.clock{font-size:28px;font-weight:800;font-variant-numeric:tabular-nums}.clock small{font-size:12px;color:#777;font-weight:500;margin-left:6px}
+.set{color:#999;font-size:15px}.mode{font-size:12px;font-weight:700;color:#a78bfa}.mode.d{color:#fbbf24}
+.r{margin-left:auto;display:flex;gap:8px}.btn{background:#18181c;color:#bbb;border:1px solid #2a2a30;border-radius:8px;padding:7px 11px;cursor:pointer;font-size:13px}
+.levs{display:none;gap:3px;padding:0 24px 6px;justify-content:flex-end}.levs.on{display:flex}
+.levs button{background:#18181c;border:1px solid #2a2a30;color:#aaa;padding:4px 8px;border-radius:6px;cursor:pointer;font-size:11px}.levs button.on{background:#7c4dff;color:#fff}
+.warn{color:#f87171;font-size:12px;text-align:right;padding:0 24px 6px;display:none}
+.rows{flex:1;display:flex;flex-direction:column;gap:12px;padding:6px 24px 18px;min-height:0}
+.row{flex:1;min-height:110px;display:grid;grid-template-columns:42% 29% 29%;border:6px solid #9e9e9e;border-radius:28px;overflow:hidden;background:#fff}
+.id{background:#fff;color:#000;padding:8px 26px;display:flex;flex-direction:column;justify-content:center;font-weight:800;line-height:1.12}
+.id .n{font-size:30px}.id .d{font-size:32px}.id .x{font-size:28px}
+.d.LONG{color:#22b14c}.d.SHORT{color:#e60000}.d.WAIT{color:#aaa}
+.b{display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:30px;letter-spacing:1px;text-align:center;line-height:1.25;border-left:3px solid #ddd}
+.b small{font-size:15px;font-weight:700;opacity:.9;letter-spacing:.5px}
+.grey{background:#a6a6a6}.go{background:#33d633}.in{background:#5aa65a}.hold{background:#f7a800}.now{background:#ff1a1a;animation:bl .8s infinite}.done{background:#7a7a7a}
+@keyframes bl{50%{background:#7a0000}}
+.row.GO{border-color:#33d633;box-shadow:0 0 22px #33d63388}.row.IN{border-color:#5aa65a}.row.HOLD{border-color:#f7a800}.row.NOW{border-color:#ff1a1a;box-shadow:0 0 22px #ff1a1a99}
+.tag{font-size:13px;border:2px solid #fff;border-radius:6px;padding:1px 8px;margin-top:4px}
+@media(max-width:760px){.row{grid-template-columns:1fr 1fr;border-radius:20px;border-width:4px;min-height:auto}.id{grid-column:1/3;flex-direction:row;gap:12px;align-items:baseline;flex-wrap:wrap;padding:10px 16px}
+.id .n,.id .d,.id .x{font-size:20px}.b{font-size:20px;padding:14px 4px;border-left:none;border-top:3px solid #ddd}.b small{font-size:12px}.rows{padding:6px 10px 12px}.top{padding:8px 12px}}
+</style></head><body>
+<div class="top"><div class="clock" id="clock">--:--:--<small>Dubai</small></div><div class="set" id="set"></div><div class="mode" id="mode"></div>
+<div class="r"><button class="btn" id="sound">🔔 Enable alerts</button><button class="btn" id="gear" title="Leverage">⚙</button></div></div>
+<div class="levs" id="levs"></div><div class="warn" id="warn"></div>
+<div class="rows" id="grid"></div>
+<script>
+const P=new URLSearchParams(location.search);let lev=+(P.get('lev')||localStorage.lev||375);const AT=P.get('at');
+const LEVS=[250,300,350,375,400,450,500];let seen=JSON.parse(localStorage.seen||'{}'),snd=false,cfg=null;
+function levBtns(){document.getElementById('levs').innerHTML=LEVS.map(l=>`<button class="${l==lev?'on':''}" onclick="setLev(${l})">${l}x</button>`).join('')}
+function setLev(l){lev=l;localStorage.lev=l;levBtns();load()}levBtns();
+document.getElementById('gear').onclick=()=>document.getElementById('levs').classList.toggle('on');
+document.getElementById('sound').onclick=()=>{snd=true;if(window.Notification)Notification.requestPermission();beep(660);document.getElementById('sound').textContent='🔔 On'};
+function beep(f){try{const c=new AudioContext(),o=c.createOscillator(),g=c.createGain();o.frequency.value=f;o.connect(g);g.connect(c.destination);g.gain.value=.15;o.start();setTimeout(()=>{o.frequency.value=f*1.5},180);setTimeout(()=>o.stop(),420)}catch(e){}}
+function notify(k,t){if(seen[k])return;seen[k]=1;localStorage.seen=JSON.stringify(seen);if(!snd)return;beep(t.startsWith('CLOSE')?440:880);if(window.Notification&&Notification.permission=='granted')new Notification('MOON SIGNALS',{body:t})}
+const tag=h=>!h?'':/Profit/.test(h)?'TP':/Loss/.test(h)?'SL':'TIME';
+const NAMES={GOLD:'GOLD XAUUSD',SILVER:'SILVER XAGUSD',OIL:'OIL WTI',SPX:'S&P500 SPX',EURUSD:'EUR/USD'},ORDER=['GOLD','SILVER','OIL','SPX','EURUSD'];
+function tile(s){const t=s.trade,TS=cfg.time_stop_min;let dir='WAIT',rc='',en=['grey','PENDING<br>WAIT'],cl=['grey','CLOSE<br>WAIT'];
+ const nm=NAMES[s.sym]||s.label;
+ if(t&&t.side&&s.status!='DONE')dir=t.side;
+ switch(s.status){
+  case 'ENTRY':case 'IN TRADE':{const left=Math.max(0,s.secs_left||0),el=TS*60-left;notify(s.id+'e',`${t.side} ${nm}`);
+   if(el<=150){rc='GO';en=['go','CONFIRMED<br>GO']}else{rc='IN';en=['in','IN<br>TRADE']}
+   if(rc=='IN')rc='HOLD';cl=['hold',`CLOSE<br>HOLD<small>${Math.ceil(left/60)}m left</small>`];break}
+  case 'CLOSE NOW':rc='NOW';en=['in','IN<br>TRADE'];cl=['now',`CLOSE<br>NOW<small>${tag(t&&t.how)||'TIME'}</small>`];notify(s.id+'c',`CLOSE ${nm}`);break;
+  case 'DONE':if(t&&t.side){en=['done','ENTERED'];cl=['done',`DONE${t.how?`<span class="tag">${tag(t.how)}</span>`:''}`]}else{en=['grey','NO SIGNAL<br>TODAY']}break;
+ }
+ return `<div class="row ${rc}"><div class="id"><span class="n">${nm}</span><span class="d ${dir}">${dir}</span><span class="x">x${lev}</span></div><div class="b ${en[0]}">${en[1]}</div><div class="b ${cl[0]}">${cl[1]}</div></div>`}
+async function load(){try{const j=await (await fetch('signals.json?t='+Date.now())).json();if(j.error)throw j.error;cfg=j.cfg;
+ document.getElementById('clock').innerHTML=j.now.slice(11,19)+'<small>Dubai</small>';
+ document.getElementById('set').textContent=`${lev}x · AP $${j.cfg.auto_profit} · AL $${j.cfg.auto_loss} · ${j.cfg.time_stop_min}m`;
+ const m=document.getElementById('mode');m.textContent=j.demo?'● DEMO':'● LIVE';m.className='mode'+(j.demo?' d':'');
+ const gap=(1-j.cfg.auto_loss/j.cfg.wager)/lev*100,w=document.getElementById('warn');w.style.display=gap<0.1?'block':'none';w.textContent=`⚠ ${lev}x: Auto Loss too close to liquidation`;
+ document.getElementById('grid').innerHTML=ORDER.map(k=>j.symbols.find(x=>x.sym==k)).filter(Boolean).map(tile).join('');
+}catch(e){document.getElementById('set').textContent='Error: '+e}}
+load();setInterval(load,30000);
+</script></body></html>
