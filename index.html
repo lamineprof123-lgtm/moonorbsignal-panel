@@ -98,7 +98,7 @@ const ORB_N=mobile?60:110,OZ=-12,oP=new Float32Array(ORB_N*3),oF=new Float32Arra
 for(let i=0;i<ORB_N;i++){OB.push({x:rnd(-1,1),y:rnd(-1,1),vx:rnd(-.02,.02),vy:rnd(-.02,.02),ph:R()*6.28,f:0});oS[i]=R()}
 const oG=new THREE.BufferGeometry();oG.setAttribute('position',new THREE.BufferAttribute(oP,3));oG.setAttribute('flash',new THREE.BufferAttribute(oF,1));oG.setAttribute('seed',new THREE.BufferAttribute(oS,1));
 const orbs=new THREE.Points(oG,new THREE.ShaderMaterial({uniforms:U,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,
- vertexShader:`uniform float time,pr;attribute float flash,seed;varying float vF,vT;void main(){vF=flash;vT=.6+.4*sin(time*1.1+seed*30.);vec4 mv=modelViewMatrix*vec4(position,1.);gl_Position=projectionMatrix*mv;gl_PointSize=pr*(8.+seed*9.+flash*28.)*12./-mv.z;}`,
+ vertexShader:`uniform float time,pr;attribute float flash,seed;varying float vF,vT;void main(){vF=flash;vT=(.6+.4*sin(time*1.1+seed*30.))*smoothstep(55.,40.,-position.z);vec4 mv=modelViewMatrix*vec4(position,1.);gl_Position=projectionMatrix*mv;gl_PointSize=pr*(6.+seed*6.+flash*22.)*18./-mv.z;}`,
  fragmentShader:`varying float vF,vT;void main(){float d=length(gl_PointCoord-.5)*2.;if(d>1.)discard;float core=smoothstep(.35,0.,d),glow=pow(1.-d,2.5);float ring=vF*smoothstep(.12,0.,abs(d-(1.-vF)*.9-.08));
  vec3 c=mix(vec3(.2,.8,1.),vec3(.85,1.,1.),vF);gl_FragColor=vec4(c,(core*.9+glow*.45)*(.55+.45*vT)*(.7+vF)+ring*.9);}`}));orbs.frustumCulled=false;scene.add(orbs);
 // scan beam (screen-space wedge sweeping from the centre)
@@ -113,14 +113,16 @@ const lM=new THREE.LineBasicMaterial({color:0x9ff4ff,transparent:true,opacity:0,
 pts(1,()=>[0,0,-30,0],`uniform float time,pr;varying float vA;varying vec3 vCol;void main(){vec4 mv=modelViewMatrix*vec4(position,1.);gl_Position=projectionMatrix*mv;vA=.85+.15*sin(time*1.7);vCol=vec3(.5,.95,1.);gl_PointSize=pr*170.;}`,
  `varying vec3 vCol;varying float vA;void main(){float d=length(gl_PointCoord-.5)*2.;if(d>1.)discard;gl_FragColor=vec4(vCol,vA*(pow(1.-d,3.)*.9+smoothstep(.12,0.,d)));}`);
 let prevA=0,lockT=0,lockI=-1;
-function scan(dt,t){const hw=Math.tan(35*Math.PI/180)*-OZ,ww=hw*camera.aspect,a=(t*.55)%(Math.PI*2);beam.material.uniforms.ang.value=a;beam.material.uniforms.asp.value=camera.aspect;
- for(let i=0;i<ORB_N;i++){const o=OB[i];o.x+=o.vx*dt;o.y+=o.vy*dt;if(o.x<-1.05)o.x=1.05;if(o.x>1.05)o.x=-1.05;if(o.y<-1.05)o.y=1.05;if(o.y>1.05)o.y=-1.05;
-  const X=o.x*ww+Math.sin(t*.2+o.ph)*.3,Y=o.y*hw+Math.cos(t*.17+o.ph)*.3;oP[i*3]=X;oP[i*3+1]=Y;oP[i*3+2]=OZ;
-  let th=Math.atan2(Y,X*1.);if(th<0)th+=Math.PI*2;const pa=prevA,crossed=pa<=a?(th>pa&&th<=a):(th>pa||th<=a);
-  if(crossed&&Math.hypot(X,Y)>hw*.25){o.f=1;if(lockT<=.2||Math.random()<.35){lockI=i;lockT=1}}
-  o.f=Math.max(0,o.f-dt*.8);oF[i]=o.f}
+function spawn(o,z){o.th=R()*Math.PI*2;o.r=rnd(2.5,9);o.z=z;o.v=rnd(2.2,3.6);o.f=0;o.done=false}
+OB.forEach(o=>spawn(o,-rnd(4,55)));
+function scan(dt,t){const a=(t*.55)%(Math.PI*2);beam.material.uniforms.ang.value=a;beam.material.uniforms.asp.value=camera.aspect;
+ for(let i=0;i<ORB_N;i++){const o=OB[i];o.z+=o.v*dt*(RM?.3:1);if(o.z>-1.5)spawn(o,-55);
+  const X=Math.cos(o.th)*o.r*1.3,Y=Math.sin(o.th)*o.r;oP[i*3]=X;oP[i*3+1]=Y;oP[i*3+2]=o.z;
+  let th=Math.atan2(Y,X/1.)%(Math.PI*2);if(th<0)th+=Math.PI*2;const pa=prevA,crossed=pa<=a?(th>pa&&th<=a):(th>pa||th<=a);
+  if(!o.done&&o.z>-40&&(crossed||o.z>-5)){o.done=true;o.f=1;if(lockT<=.25||R()<.4){lockI=i;lockT=1}}
+  o.f=Math.max(0,o.f-dt*.9);oF[i]=o.f*Math.min(1,(55+o.z)/6)}
  prevA=a;oG.attributes.position.needsUpdate=true;oG.attributes.flash.needsUpdate=true;
- lockT=Math.max(0,lockT-dt*1.1);if(lockI>=0){lP.set([0,0,OZ,oP[lockI*3],oP[lockI*3+1],OZ]);lG.attributes.position.needsUpdate=true}lM.opacity=lockT*.8}
+ lockT=Math.max(0,lockT-dt*1.1);if(lockI>=0){lP.set([0,0,-30,oP[lockI*3],oP[lockI*3+1],oP[lockI*3+2]]);lG.attributes.position.needsUpdate=true}lM.opacity=lockT*.8}
 function size(){const w=innerWidth,h=innerHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix()}
 addEventListener('resize',size);size();
 const clock=new THREE.Clock();let lt=0;const loop=()=>{U.time.value=clock.getElapsedTime();const dt=Math.min(.05,U.time.value-lt);lt=U.time.value;scan(dt,U.time.value);camera.position.x=Math.sin(U.time.value*.05)*.3;camera.position.y=Math.cos(U.time.value*.04)*.2;renderer.render(scene,camera)};
