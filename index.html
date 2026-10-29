@@ -1,27 +1,54 @@
 <!doctype html><html><head><meta charset="utf-8"><title>MOON SIGNALS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
-*{box-sizing:border-box}html,body{height:100%}body{margin:0;background:#0b0b0d;color:#eee;font-family:Montserrat,Inter,system-ui,Segoe UI,Arial,sans-serif;display:flex;flex-direction:column}
-.top{display:flex;align-items:center;gap:18px;padding:10px 24px;flex-wrap:wrap}
-.clock{font-size:28px;font-weight:800;font-variant-numeric:tabular-nums}.clock small{font-size:12px;color:#777;font-weight:500;margin-left:6px}
-.set{color:#999;font-size:15px}.mode{font-size:12px;font-weight:700;color:#a78bfa}.mode.d{color:#fbbf24}
-.r{margin-left:auto;display:flex;gap:8px}.btn{background:#18181c;color:#bbb;border:1px solid #2a2a30;border-radius:8px;padding:7px 11px;cursor:pointer;font-size:13px}
-.levs{display:none;gap:3px;padding:0 24px 6px;justify-content:flex-end}.levs.on{display:flex}
-.levs button{background:#18181c;border:1px solid #2a2a30;color:#aaa;padding:4px 8px;border-radius:6px;cursor:pointer;font-size:11px}.levs button.on{background:#7c4dff;color:#fff}
-.warn{color:#f87171;font-size:12px;text-align:right;padding:0 24px 6px;display:none}
-.rows{flex:1;display:flex;flex-direction:column;gap:12px;padding:6px 24px 18px;min-height:0}
-.row{flex:1;min-height:110px;display:grid;grid-template-columns:42% 29% 29%;border:6px solid #9e9e9e;border-radius:28px;overflow:hidden;background:#fff}
-.id{background:#fff;color:#000;padding:8px 26px;display:flex;flex-direction:column;justify-content:center;font-weight:800;line-height:1.12}
-.id .n{font-size:30px}.id .d{font-size:32px}.id .x{font-size:28px}
-.d.LONG{color:#22b14c}.d.SHORT{color:#e60000}.d.WAIT{color:#aaa}
-.b{display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:30px;letter-spacing:1px;text-align:center;line-height:1.25;border-left:3px solid #ddd}
-.b small{font-size:15px;font-weight:700;opacity:.9;letter-spacing:.5px}
-.grey{background:#a6a6a6}.go{background:#33d633}.in{background:#5aa65a}.hold{background:#f7a800}.now{background:#ff1a1a;animation:bl .8s infinite}.done{background:#7a7a7a}
-@keyframes bl{50%{background:#7a0000}}
-.row.GO{border-color:#33d633;box-shadow:0 0 22px #33d63388}.row.IN{border-color:#5aa65a}.row.HOLD{border-color:#f7a800}.row.NOW{border-color:#ff1a1a;box-shadow:0 0 22px #ff1a1a99}
-.tag{font-size:13px;border:2px solid #fff;border-radius:6px;padding:1px 8px;margin-top:4px}
-@media(max-width:760px){.row{grid-template-columns:1fr 1fr;border-radius:20px;border-width:4px;min-height:auto}.id{grid-column:1/3;flex-direction:row;gap:12px;align-items:baseline;flex-wrap:wrap;padding:10px 16px}
-.id .n,.id .d,.id .x{font-size:20px}.b{font-size:20px;padding:14px 4px;border-left:none;border-top:3px solid #ddd}.b small{font-size:12px}.rows{padding:6px 10px 12px}.top{padding:8px 12px}}
+*{box-sizing:border-box}html,body{height:100%}body{margin:0;background:#02030a;color:#e6f7ff;font-family:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;display:flex;flex-direction:column;position:relative;overflow-x:hidden}
+#bg{position:fixed;inset:0;width:100%;height:100%;z-index:-2}
+body:after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,255,255,.035) 0 1px,transparent 1px 3px)}
+.top{display:flex;align-items:center;gap:16px;padding:10px 24px;flex-wrap:wrap;border-bottom:1px solid rgba(0,229,255,.25);background:rgba(4,10,24,.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.clock{font-family:Orbitron,monospace;font-size:24px;font-weight:800;color:#7df9ff;text-shadow:0 0 10px #00e5ff99;font-variant-numeric:tabular-nums}.clock small{font-size:11px;color:#5d8aa8;font-weight:500;margin-left:6px}
+.set{color:#8fb8d0;font-size:13px;letter-spacing:.5px}.mode{font-size:11px;font-weight:700;color:#00e5ff;letter-spacing:2px;text-shadow:0 0 8px #00e5ff}.mode.d{color:#fbbf24;text-shadow:0 0 8px #fbbf24}
+.r{margin-left:auto;display:flex;gap:8px}.btn{background:rgba(0,229,255,.06);color:#9fe8ff;border:1px solid rgba(0,229,255,.35);border-radius:6px;padding:6px 10px;cursor:pointer;font:12px 'JetBrains Mono',monospace;box-shadow:0 0 8px rgba(0,229,255,.15) inset}
+.levs{display:none;gap:3px;padding:6px 24px;justify-content:flex-end}.levs.on{display:flex}
+.levs button{background:rgba(0,229,255,.06);border:1px solid rgba(0,229,255,.3);color:#9fe8ff;padding:4px 8px;border-radius:4px;cursor:pointer;font:11px 'JetBrains Mono',monospace}.levs button.on{background:#00b8d4;color:#001;box-shadow:0 0 10px #00e5ff}
+.warn{color:#ff6b6b;font-size:12px;text-align:right;padding:0 24px 6px;display:none}
+.rows{flex:1;display:flex;flex-direction:column;gap:10px;padding:12px max(24px,6vw) 18px;min-height:0;max-width:1180px;width:100%;margin:0 auto}
+.row{flex:1;min-height:88px;max-height:150px;display:grid;grid-template-columns:42% 29% 29%;border:1.5px solid rgba(160,190,210,.45);border-radius:14px;overflow:hidden;background:rgba(10,20,40,.35);backdrop-filter:blur(10px) saturate(140%);-webkit-backdrop-filter:blur(10px) saturate(140%);box-shadow:0 0 14px rgba(0,229,255,.08),inset 0 0 20px rgba(0,229,255,.05);position:relative}
+.row:before{content:"";position:absolute;left:0;top:0;width:14px;height:14px;border-left:2px solid #00e5ff;border-top:2px solid #00e5ff;border-radius:14px 0 0 0;opacity:.8}
+.id{background:rgba(255,255,255,.04);color:#e6f7ff;padding:6px 22px;display:flex;flex-direction:column;justify-content:center;font-family:Orbitron,monospace;font-weight:800;line-height:1.15}
+.id .n{font-size:22px;letter-spacing:1px}.id .d{font-size:24px}.id .x{font-size:18px;color:#7df9ff;text-shadow:0 0 8px #00e5ff88}
+.d.LONG{color:#39ff6a;text-shadow:0 0 10px #39ff6a99}.d.SHORT{color:#ff3344;text-shadow:0 0 10px #ff334499}.d.WAIT{color:#9aa7b2}
+.b{display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-family:Orbitron,monospace;font-weight:800;font-size:22px;letter-spacing:1.5px;text-align:center;line-height:1.25;border-left:1px solid rgba(0,229,255,.25);text-shadow:0 1px 3px rgba(0,0,0,.6)}
+.b small{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;opacity:.95;letter-spacing:.5px}
+.grey{background:rgba(140,150,160,.32)}.go{background:rgba(40,230,70,.82);box-shadow:inset 0 0 24px #b6ffc4}.in{background:rgba(60,170,80,.68)}.hold{background:rgba(255,170,0,.8)}.now{background:rgba(255,20,40,.88);animation:bl .8s infinite}.done{background:rgba(100,110,120,.5)}
+@keyframes bl{50%{background:rgba(110,0,10,.9)}}
+.row.GO{border-color:#39ff6a;box-shadow:0 0 22px #39ff6a88}.row.IN{border-color:#4caf50}.row.HOLD{border-color:#ffaa00;box-shadow:0 0 16px #ffaa0066}.row.NOW{border-color:#ff1a2a;box-shadow:0 0 24px #ff1a2aaa}
+.tag{font-size:11px;border:1.5px solid #fff;border-radius:4px;padding:1px 7px;margin-top:4px}
+@media(max-width:760px){.row{grid-template-columns:1fr 1fr;border-radius:12px;min-height:auto;max-height:none}.id{grid-column:1/3;flex-direction:row;gap:12px;align-items:baseline;flex-wrap:wrap;padding:8px 14px}
+.id .n,.id .d,.id .x{font-size:16px}.b{font-size:16px;padding:11px 4px;border-left:none;border-top:1px solid rgba(0,229,255,.25)}.b small{font-size:11px}.rows{padding:8px 10px 12px;gap:8px}.top{padding:8px 12px}.clock{font-size:20px}}
 </style></head><body>
+<canvas id="bg"></canvas><script>
+(()=>{const c=document.getElementById('bg'),x=c.getContext('2d');let W,H,D=Math.min(devicePixelRatio||1,2),stars=[],nodes=[],run=true,t0=performance.now();
+const mob=()=>innerWidth<760;
+function init(){W=innerWidth;H=innerHeight;c.width=W*D;c.height=H*D;x.setTransform(D,0,0,D,0,0);
+ stars=Array.from({length:mob()?110:220},()=>({x:Math.random()*W,y:Math.random()*H,z:Math.random()*0.9+0.1,p:Math.random()*6.28}));
+ const N=mob()?26:48;nodes=Array.from({length:N},()=>({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.15,vy:(Math.random()-.5)*.15,p:Math.random()*6.28,lit:0}))}
+let mx=0,my=0;addEventListener('pointermove',e=>{mx=e.clientX/W-.5;my=e.clientY/H-.5});
+function frame(now){if(!run)return;const t=(now-t0)/1000;x.clearRect(0,0,W,H);
+ let g=x.createRadialGradient(W*.75,H*.25,0,W*.75,H*.25,Math.max(W,H)*.6);g.addColorStop(0,'rgba(90,40,160,.22)');g.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=g;x.fillRect(0,0,W,H);
+ g=x.createRadialGradient(W*.2,H*.8,0,W*.2,H*.8,Math.max(W,H)*.5);g.addColorStop(0,'rgba(0,120,170,.18)');g.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=g;x.fillRect(0,0,W,H);
+ for(const s of stars){const sx=(s.x+t*4*s.z-mx*30*s.z)%W,sy=s.y-my*30*s.z,a=.35+.65*Math.abs(Math.sin(t*1.3+s.p));x.fillStyle=`rgba(220,240,255,${a*s.z})`;x.fillRect(sx<0?sx+W:sx,sy,s.z*1.6,s.z*1.6)}
+ const sweep=((t*0.12)%1.3-.15)*W;
+ for(const n of nodes){n.x+=n.vx;n.y+=n.vy;if(n.x<0||n.x>W)n.vx*=-1;if(n.y<0||n.y>H)n.vy*=-1;if(Math.abs(n.x-sweep)<30)n.lit=1;n.lit*=.985}
+ const R=mob()?140:170;x.lineWidth=1;
+ for(let i=0;i<nodes.length;i++)for(let j=i+1;j<nodes.length;j++){const a=nodes[i],b=nodes[j],d=Math.hypot(a.x-b.x,a.y-b.y);if(d<R){const l=Math.max(a.lit,b.lit),al=(1-d/R)*(.12+.5*l);x.strokeStyle=`rgba(0,229,255,${al})`;x.beginPath();x.moveTo(a.x,a.y);x.lineTo(b.x,b.y);x.stroke();
+   if(l>.3){const k=(t*1.5+i*.37)%1;x.fillStyle=`rgba(180,255,255,${l*.8})`;x.fillRect(a.x+(b.x-a.x)*k-1,a.y+(b.y-a.y)*k-1,2,2)}}}
+ for(const n of nodes){const r=1.6+Math.sin(t*2+n.p)*.6+n.lit*2.5;x.fillStyle=`rgba(${120+135*n.lit|0},255,255,${.45+.5*n.lit})`;x.shadowColor='#00e5ff';x.shadowBlur=6+12*n.lit;x.beginPath();x.arc(n.x,n.y,r,0,6.28);x.fill()}x.shadowBlur=0;
+ g=x.createLinearGradient(sweep-80,0,sweep+6,0);g.addColorStop(0,'rgba(0,229,255,0)');g.addColorStop(1,'rgba(0,229,255,.16)');x.fillStyle=g;x.fillRect(sweep-80,0,86,H);x.fillStyle='rgba(125,249,255,.55)';x.fillRect(sweep+5,0,1.5,H);
+ requestAnimationFrame(frame)}
+addEventListener('resize',init);document.addEventListener('visibilitychange',()=>{run=!document.hidden;if(run)requestAnimationFrame(frame)});
+init();requestAnimationFrame(frame)})();
+</script>
 <div class="top"><div class="clock" id="clock">--:--:--<small>Dubai</small></div><div class="set" id="set"></div><div class="mode" id="mode"></div>
 <div class="r"><button class="btn" id="sound">🔔 Enable alerts</button><button class="btn" id="gear" title="Leverage">⚙</button></div></div>
 <div class="levs" id="levs"></div><div class="warn" id="warn"></div>
