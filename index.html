@@ -28,6 +28,8 @@ body:after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;back
 .id .n,.id .d,.id .x{font-size:16px}.b{font-size:16px;padding:11px 4px;border-left:none;border-top:1px solid rgba(0,229,255,.25)}.b small{font-size:11px}.rows{padding:8px 10px 12px;gap:8px}.top{padding:8px 12px}.clock{font-size:20px}}
 .tm{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;color:#7fa8bd;letter-spacing:.5px;margin-top:3px}.tm.a{color:#cfefff}.tz{font-size:10px;color:#5d8aa8;letter-spacing:1px}
 @media(max-width:760px){.tm{font-size:11px;margin:0 0 0 auto}}
+.rk{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;color:#5d8aa8;margin-top:2px}.rk b{font-weight:700}.rk .tp{color:#5fe08a}.rk .sl{color:#ff6b78}
+@media(max-width:760px){.rk{font-size:10px}}
 </style></head><body>
 <canvas id="bg"></canvas><div id="vig" style="position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(ellipse 62% 58% at 50% 50%,rgba(0,5,12,.28),rgba(0,5,12,.05) 72%,rgba(0,0,0,.3))"></div>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
@@ -150,7 +152,7 @@ function tile(s){const t=s.trade,TS=cfg.time_stop_min;let dir='WAIT',rc='',en=['
   case 'CLOSE NOW':rc='NOW';en=['in','IN<br>TRADE'];cl=['now',`CLOSE<br>NOW<small>${tag(t&&t.how)||'TIME'}</small>`];notify(s.id+'c',`CLOSE ${nm}`);break;
   case 'DONE':if(t&&t.side){en=['done','ENTERED'];cl=['done',`DONE${t.how?`<span class="tag">${tag(t.how)}</span>`:''}`]}else{en=['grey','NO SIGNAL<br>TODAY']}break;
  }
- return `<div class="row ${rc}"><div class="id"><span class="n">${nm}</span><span class="d ${dir}">${dir}</span><span class="x">x${lev}</span>${ft(s)}</div><div class="b ${en[0]}">${en[1]}</div><div class="b ${cl[0]}">${cl[1]}</div></div>`}
+ return `<div class="row ${rc}"><div class="id"><span class="n">${nm}</span><span class="d ${dir}">${dir}</span><span class="x">x${lev}</span><span class="rk"><b class="tp">TP $${cfg.auto_profit}</b> · <b class="sl">SL $${cfg.auto_loss}</b></span>${ft(s)}</div><div class="b ${en[0]}">${en[1]}</div><div class="b ${cl[0]}">${cl[1]}</div></div>`}
 async function load(){try{const j=await (await fetch('signals.json?t='+Date.now())).json();if(j.error)throw j.error;cfg=j.cfg;
  
  
