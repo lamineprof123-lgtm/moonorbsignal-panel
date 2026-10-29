@@ -110,7 +110,7 @@ function notify(k,t){if(seen[k])return;seen[k]=1;localStorage.seen=JSON.stringif
 const tag=h=>!h?'':/Profit/.test(h)?'TP':/Loss/.test(h)?'SL':'TIME';
 const NAMES={GOLD:'GOLD XAUUSD',SILVER:'SILVER XAGUSD',OIL:'OIL WTI',SPX:'S&P500 SPX',EURUSD:'EUR/USD'},ORDER=['GOLD','SILVER','OIL','SPX','EURUSD'];
 const TZ=(new Intl.DateTimeFormat([], {timeZoneName:'short'}).formatToParts(new Date()).find(p=>p.type=='timeZoneName')||{}).value||'';
-function ft(s){const f=s.fire;if(!f||!f.t)return '';const h=new Date(f.t).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',hour12:false});return `<span class="tm${f.actual?' a':''}">${f.actual?'':'~'}${h}</span>`}
+function ft(s){const f=s.fire;if(!f||!f.t)return '';const h=new Date(f.t).toLocaleTimeString([], {hour:'numeric',minute:'2-digit',hour12:true});return `<span class="tm${f.actual?' a':''}">${f.actual?'':'~'}${h}</span>`}
 function tile(s){const t=s.trade,TS=cfg.time_stop_min;let dir='WAIT',rc='',en=['grey','PENDING<br>WAIT'],cl=['grey','CLOSE<br>WAIT'];
  const nm=NAMES[s.sym]||s.label;
  if(t&&t.side&&s.status!='DONE')dir=t.side;
