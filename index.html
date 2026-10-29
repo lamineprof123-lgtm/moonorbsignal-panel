@@ -105,24 +105,26 @@ const orbs=new THREE.Points(oG,new THREE.ShaderMaterial({uniforms:U,transparent:
 const beam=new THREE.Mesh(new THREE.PlaneGeometry(2,2),new THREE.ShaderMaterial({uniforms:Object.assign(U,{ang:{value:0},asp:{value:1}}),transparent:true,depthWrite:false,depthTest:false,blending:THREE.AdditiveBlending,
  vertexShader:`varying vec2 v;void main(){v=position.xy;gl_Position=vec4(position.xy,0.,1.);}`,
  fragmentShader:`uniform float ang,asp;varying vec2 v;void main(){vec2 p=v*vec2(asp,1.);float a=atan(p.y,p.x);float d=mod(ang-a,6.28318);float r=length(p);
- float trail=exp(-d*3.2)*.22+smoothstep(.02,0.,d)*.35;float fade=smoothstep(0.,.12,r)*smoothstep(1.9,.4,r);gl_FragColor=vec4(.15,.8,1.,trail*fade);}`}));beam.frustumCulled=false;beam.renderOrder=-1;scene.add(beam);
+ float trail=exp(-d*3.2)*.22+smoothstep(.02,0.,d)*.35;float fade=smoothstep(0.,.12,r)*smoothstep(1.9,.4,r);gl_FragColor=vec4(.15,.8,1.,trail*fade);}`}));
 // lock-on line from centre to the scanned orb
-const lP=new Float32Array(6),lG=new THREE.BufferGeometry();lG.setAttribute('position',new THREE.BufferAttribute(lP,3));
-const lM=new THREE.LineBasicMaterial({color:0x9ff4ff,transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false});const lockL=new THREE.LineSegments(lG,lM);lockL.frustumCulled=false;scene.add(lockL);
+const ZN=4,lP=new Float32Array(ZN*6),lA=new Float32Array(ZN*2),lG=new THREE.BufferGeometry();lG.setAttribute('position',new THREE.BufferAttribute(lP,3));lG.setAttribute('al',new THREE.BufferAttribute(lA,1));const ZP=Array.from({length:ZN},()=>({i:-1,t:0}));
+const lM=new THREE.ShaderMaterial({transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,vertexShader:`attribute float al;varying float vA;void main(){vA=al;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,fragmentShader:`varying float vA;void main(){gl_FragColor=vec4(.7,.97,1.,vA);}`});const lockL=new THREE.LineSegments(lG,lM);lockL.frustumCulled=false;scene.add(lockL);
 // bright central core
 pts(1,()=>[0,0,-30,0],`uniform float time,pr;varying float vA;varying vec3 vCol;void main(){vec4 mv=modelViewMatrix*vec4(position,1.);gl_Position=projectionMatrix*mv;vA=.85+.15*sin(time*1.7);vCol=vec3(.5,.95,1.);gl_PointSize=pr*170.;}`,
  `varying vec3 vCol;varying float vA;void main(){float d=length(gl_PointCoord-.5)*2.;if(d>1.)discard;gl_FragColor=vec4(vCol,vA*(pow(1.-d,3.)*.9+smoothstep(.12,0.,d)));}`);
 let prevA=0,lockT=0,lockI=-1;
 function spawn(o,z){o.th=R()*Math.PI*2;o.r=rnd(2.5,9);o.z=z;o.v=rnd(2.2,3.6);o.f=0;o.done=false}
 OB.forEach(o=>spawn(o,-rnd(4,55)));
-function scan(dt,t){const a=(t*.55)%(Math.PI*2);beam.material.uniforms.ang.value=a;beam.material.uniforms.asp.value=camera.aspect;
+let nextZap=0;
+function scan(dt,t){
  for(let i=0;i<ORB_N;i++){const o=OB[i];o.z+=o.v*dt*(RM?.3:1);if(o.z>-1.5)spawn(o,-55);
-  const X=Math.cos(o.th)*o.r*1.3,Y=Math.sin(o.th)*o.r;oP[i*3]=X;oP[i*3+1]=Y;oP[i*3+2]=o.z;
-  let th=Math.atan2(Y,X/1.)%(Math.PI*2);if(th<0)th+=Math.PI*2;const pa=prevA,crossed=pa<=a?(th>pa&&th<=a):(th>pa||th<=a);
-  if(!o.done&&o.z>-40&&(crossed||o.z>-5)){o.done=true;o.f=1;if(lockT<=.25||R()<.4){lockI=i;lockT=1}}
-  o.f=Math.max(0,o.f-dt*.9);oF[i]=o.f*Math.min(1,(55+o.z)/6)}
- prevA=a;oG.attributes.position.needsUpdate=true;oG.attributes.flash.needsUpdate=true;
- lockT=Math.max(0,lockT-dt*1.1);if(lockI>=0){lP.set([0,0,-30,oP[lockI*3],oP[lockI*3+1],oP[lockI*3+2]]);lG.attributes.position.needsUpdate=true}lM.opacity=lockT*.8}
+  oP[i*3]=Math.cos(o.th)*o.r*1.3;oP[i*3+1]=Math.sin(o.th)*o.r;oP[i*3+2]=o.z;
+  if(!o.done&&o.z>-6){zap(i)}
+  o.f=Math.max(0,o.f-dt*.9);oF[i]=o.f}
+ nextZap-=dt;if(nextZap<=0){nextZap=rnd(.15,.9)*(RM?3:1);const n=R()<.25?2+(R()*2|0):1;for(let k=0;k<n;k++){const c=[];for(let i=0;i<ORB_N;i++){const o=OB[i];if(!o.done&&o.z>-40)c.push(i)}if(c.length)zap(c[R()*c.length|0])}}
+ for(let k=0;k<ZN;k++){const z=ZP[k];z.t=Math.max(0,z.t-dt*3.2);const a=z.t*z.t;lA[k*2]=a;lA[k*2+1]=a*.9;if(z.i>=0)lP.set([0,0,-30,oP[z.i*3],oP[z.i*3+1],oP[z.i*3+2]],k*6)}
+ oG.attributes.position.needsUpdate=true;oG.attributes.flash.needsUpdate=true;lG.attributes.position.needsUpdate=true;lG.attributes.al.needsUpdate=true}
+function zap(i){const o=OB[i];o.done=true;o.f=1;let k=0;for(let q=1;q<ZN;q++)if(ZP[q].t<ZP[k].t)k=q;ZP[k].i=i;ZP[k].t=1}
 function size(){const w=innerWidth,h=innerHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix()}
 addEventListener('resize',size);size();
 const clock=new THREE.Clock();let lt=0;const loop=()=>{U.time.value=clock.getElapsedTime();const dt=Math.min(.05,U.time.value-lt);lt=U.time.value;scan(dt,U.time.value);camera.position.x=Math.sin(U.time.value*.05)*.3;camera.position.y=Math.cos(U.time.value*.04)*.2;renderer.render(scene,camera)};
