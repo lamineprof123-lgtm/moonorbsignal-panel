@@ -94,13 +94,13 @@ pts(28*K|0,()=>{let x=rnd(-1,1),y=rnd(-1,1);if(Math.abs(x)<.45&&R()<.75)x=Math.s
  fragmentShader:`uniform float time;varying vec2 v;void main(){vec2 q=(v-.5)*vec2(1.33,1.);float d=length(q);float r=exp(-pow((d-.075)*22.,2.))*.5+exp(-length(q)*7.)*.22;r*=smoothstep(.5,.3,length(v-.5));gl_FragColor=vec4(.1,.7,1.,r*2.*(.85+.15*sin(time*.8)));}`}));m.position.z=-40;scene.add(m)}
 
 // ---- scanner orbs ----
-const ORB_N=mobile?60:110,OZ=-12,oP=new Float32Array(ORB_N*3),oF=new Float32Array(ORB_N),oS=new Float32Array(ORB_N),OB=[];
+const ORB_N=mobile?60:110,OZ=-12,oP=new Float32Array(ORB_N*3),oF=new Float32Array(ORB_N),oS=new Float32Array(ORB_N),oK=new Float32Array(ORB_N),OB=[];
 for(let i=0;i<ORB_N;i++){OB.push({x:rnd(-1,1),y:rnd(-1,1),vx:rnd(-.02,.02),vy:rnd(-.02,.02),ph:R()*6.28,f:0});oS[i]=R()}
-const oG=new THREE.BufferGeometry();oG.setAttribute('position',new THREE.BufferAttribute(oP,3));oG.setAttribute('flash',new THREE.BufferAttribute(oF,1));oG.setAttribute('seed',new THREE.BufferAttribute(oS,1));
+const oG=new THREE.BufferGeometry();oG.setAttribute('position',new THREE.BufferAttribute(oP,3));oG.setAttribute('flash',new THREE.BufferAttribute(oF,1));oG.setAttribute('seed',new THREE.BufferAttribute(oS,1));oG.setAttribute('scn',new THREE.BufferAttribute(oK,1));
 const orbs=new THREE.Points(oG,new THREE.ShaderMaterial({uniforms:U,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,
- vertexShader:`uniform float time,pr;attribute float flash,seed;varying float vF,vT;void main(){vF=flash;vT=(.6+.4*sin(time*1.1+seed*30.))*smoothstep(55.,40.,-position.z);vec4 mv=modelViewMatrix*vec4(position,1.);gl_Position=projectionMatrix*mv;gl_PointSize=pr*(6.+seed*6.+flash*22.)*18./-mv.z;}`,
- fragmentShader:`varying float vF,vT;void main(){float d=length(gl_PointCoord-.5)*2.;if(d>1.)discard;float core=smoothstep(.35,0.,d),glow=pow(1.-d,2.5);float ring=vF*smoothstep(.12,0.,abs(d-(1.-vF)*.9-.08));
- vec3 c=mix(vec3(.2,.8,1.),vec3(.85,1.,1.),vF);gl_FragColor=vec4(c,(core*.9+glow*.45)*(.55+.45*vT)*(.7+vF)+ring*.9);}`}));orbs.frustumCulled=false;scene.add(orbs);
+ vertexShader:`uniform float time,pr;attribute float flash,seed,scn;varying float vF,vT,vK;void main(){vF=flash;vK=scn;vT=(.6+.4*sin(time*1.1+seed*30.))*smoothstep(55.,40.,-position.z);vec4 mv=modelViewMatrix*vec4(position,1.);gl_Position=projectionMatrix*mv;gl_PointSize=pr*(6.+seed*6.+flash*22.)*18./-mv.z;}`,
+ fragmentShader:`varying float vF,vT,vK;void main(){float d=length(gl_PointCoord-.5)*2.;if(d>1.)discard;float core=smoothstep(.35,0.,d),glow=pow(1.-d,2.5);float ring=vF*smoothstep(.12,0.,abs(d-(1.-vF)*.9-.08));
+ vec3 c=mix(mix(vec3(.2,.8,1.),vec3(.22,1.,.53),vK),vec3(.8,1.,.85),vF*.6);gl_FragColor=vec4(c,(core*.9+glow*.45)*(.55+.45*vT)*(.7+vF)+ring*.9);}`}));orbs.frustumCulled=false;scene.add(orbs);
 // scan beam (screen-space wedge sweeping from the centre)
 const beam=new THREE.Mesh(new THREE.PlaneGeometry(2,2),new THREE.ShaderMaterial({uniforms:Object.assign(U,{ang:{value:0},asp:{value:1}}),transparent:true,depthWrite:false,depthTest:false,blending:THREE.AdditiveBlending,
  vertexShader:`varying vec2 v;void main(){v=position.xy;gl_Position=vec4(position.xy,0.,1.);}`,
@@ -108,13 +108,13 @@ const beam=new THREE.Mesh(new THREE.PlaneGeometry(2,2),new THREE.ShaderMaterial(
  float trail=exp(-d*3.2)*.22+smoothstep(.02,0.,d)*.35;float fade=smoothstep(0.,.12,r)*smoothstep(1.9,.4,r);gl_FragColor=vec4(.15,.8,1.,trail*fade);}`}));
 // lock-on line from centre to the scanned orb
 const ZN=4,lP=new Float32Array(ZN*6),lA=new Float32Array(ZN*2),lG=new THREE.BufferGeometry();lG.setAttribute('position',new THREE.BufferAttribute(lP,3));lG.setAttribute('al',new THREE.BufferAttribute(lA,1));const ZP=Array.from({length:ZN},()=>({i:-1,t:0}));
-const lM=new THREE.ShaderMaterial({transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,vertexShader:`attribute float al;varying float vA;void main(){vA=al;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,fragmentShader:`varying float vA;void main(){gl_FragColor=vec4(.7,.97,1.,vA);}`});const lockL=new THREE.LineSegments(lG,lM);lockL.frustumCulled=false;scene.add(lockL);
+const lM=new THREE.ShaderMaterial({transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,vertexShader:`attribute float al;varying float vA;void main(){vA=al;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,fragmentShader:`varying float vA;void main(){gl_FragColor=vec4(.45,1.,.7,vA);}`});const lockL=new THREE.LineSegments(lG,lM);lockL.frustumCulled=false;scene.add(lockL);
 // bright central core
 pts(1,()=>[0,0,-30,0],`uniform float time,pr;varying float vA;varying vec3 vCol;void main(){vec4 mv=modelViewMatrix*vec4(position,1.);gl_Position=projectionMatrix*mv;vA=.85+.15*sin(time*1.7);vCol=vec3(.5,.95,1.);gl_PointSize=pr*170.;}`,
  `varying vec3 vCol;varying float vA;void main(){float d=length(gl_PointCoord-.5)*2.;if(d>1.)discard;gl_FragColor=vec4(vCol,vA*(pow(1.-d,3.)*.9+smoothstep(.12,0.,d)));}`);
 let prevA=0,lockT=0,lockI=-1;
-function spawn(o,z){o.th=R()*Math.PI*2;o.r=rnd(2.5,9);o.z=z;o.v=rnd(2.2,3.6);o.f=0;o.done=false}
-OB.forEach(o=>spawn(o,-rnd(4,55)));
+function spawn(o,z){o.th=R()*Math.PI*2;o.r=rnd(2.5,9);o.z=z;o.v=rnd(2.2,3.6);o.f=0;o.done=false;if(o.k!==undefined)oK[o.k]=0}
+OB.forEach((o,i)=>{o.k=i;spawn(o,-rnd(4,55))});
 let nextZap=0;
 function scan(dt,t){
  for(let i=0;i<ORB_N;i++){const o=OB[i];o.z+=o.v*dt*(RM?.3:1);if(o.z>-1.5)spawn(o,-55);
@@ -123,8 +123,8 @@ function scan(dt,t){
   o.f=Math.max(0,o.f-dt*.9);oF[i]=o.f}
  nextZap-=dt;if(nextZap<=0){nextZap=rnd(.15,.9)*(RM?3:1);const n=R()<.25?2+(R()*2|0):1;for(let k=0;k<n;k++){const c=[];for(let i=0;i<ORB_N;i++){const o=OB[i];if(!o.done&&o.z>-40)c.push(i)}if(c.length)zap(c[R()*c.length|0])}}
  for(let k=0;k<ZN;k++){const z=ZP[k];z.t=Math.max(0,z.t-dt*3.2);const a=z.t*z.t;lA[k*2]=a;lA[k*2+1]=a*.9;if(z.i>=0)lP.set([0,0,-30,oP[z.i*3],oP[z.i*3+1],oP[z.i*3+2]],k*6)}
- oG.attributes.position.needsUpdate=true;oG.attributes.flash.needsUpdate=true;lG.attributes.position.needsUpdate=true;lG.attributes.al.needsUpdate=true}
-function zap(i){const o=OB[i];o.done=true;o.f=1;let k=0;for(let q=1;q<ZN;q++)if(ZP[q].t<ZP[k].t)k=q;ZP[k].i=i;ZP[k].t=1}
+ oG.attributes.position.needsUpdate=true;oG.attributes.flash.needsUpdate=true;oG.attributes.scn.needsUpdate=true;lG.attributes.position.needsUpdate=true;lG.attributes.al.needsUpdate=true}
+function zap(i){const o=OB[i];o.done=true;o.f=1;oK[i]=1;let k=0;for(let q=1;q<ZN;q++)if(ZP[q].t<ZP[k].t)k=q;ZP[k].i=i;ZP[k].t=1}
 
 // matrix glyphs flying out of the tunnel (atlas texture, GPU motion)
 {const gc=document.createElement('canvas');gc.width=gc.height=256;const g2=gc.getContext('2d');g2.fillStyle='#fff';g2.font='bold 26px monospace';g2.textAlign='center';g2.textBaseline='middle';
