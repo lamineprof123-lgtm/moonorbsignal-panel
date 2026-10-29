@@ -56,7 +56,7 @@ void main(){float z=zz(position.z);vec4 mv=modelViewMatrix*vec4(position.xy,z,1.
  vA=smoothstep(.5,4.,d)*smoothstep(dep,dep*.6,d)*(.55+.45*sin(time*1.3+seed*40.));vCol=mix(vec3(.05,.65,1.),vec3(.6,.95,1.),step(.88,seed))*1.4;
  gl_PointSize=pr*(1.+seed*1.4)*11./d;}`,`varying vec3 vCol;varying float vA;${soft}`);
 // portal ring
-pts(900*K|0,()=>{const s=R()*4|0,u=rnd(-1,1),j=()=>rnd(-.1,.1)*(1+R()*2);let[a,b]=s==0?[u+j(),-1+j()]:s==1?[u+j(),1+j()]:s==2?[-1+j(),u+j()]:[1+j(),u+j()];return[a*4.2,b*3.4,-34,R()]},
+pts(900*K|0,()=>{const t=R()*6.283,rr=1+rnd(-.1,.1)*(1+R()*2);return[Math.cos(t)*rr*3.8,Math.sin(t)*rr*3.8,-34,R()]},
  `uniform float time,pr;attribute float seed;varying vec3 vCol;varying float vA;void main(){float p=1.+.04*sin(time*.8);vec4 mv=modelViewMatrix*vec4(position.xy*p,position.z,1.);gl_Position=projectionMatrix*mv;
  vA=.55+.45*sin(time*2.+seed*50.);vCol=vec3(.35,.9,1.)*1.5;gl_PointSize=pr*(1.2+seed)*30./-mv.z;}`,`varying vec3 vCol;varying float vA;${soft}`);
 // radial light lines (parallel to the tunnel axis -> radiate from the centre in perspective), flowing pulse in shader
@@ -91,7 +91,7 @@ pts(28*K|0,()=>{let x=rnd(-1,1),y=rnd(-1,1);if(Math.abs(x)<.45&&R()<.75)x=Math.s
 {const m=new THREE.Mesh(new THREE.PlaneGeometry(7,5.6),new THREE.ShaderMaterial({transparent:true,depthWrite:false,vertexShader:`varying vec2 v;void main(){v=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
  fragmentShader:`varying vec2 v;void main(){float d=length(v-.5)*2.;gl_FragColor=vec4(.0,.005,.01,.9*smoothstep(1.,.3,d));}`}));m.position.z=-34.5;scene.add(m)}
 {const m=new THREE.Mesh(new THREE.PlaneGeometry(60,45),new THREE.ShaderMaterial({uniforms:U,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,vertexShader:`varying vec2 v;void main(){v=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
- fragmentShader:`uniform float time;varying vec2 v;void main(){vec2 q=(v-.5)*vec2(1.3,1.);float d=max(abs(q.x),abs(q.y));float r=exp(-pow((d-.075)*22.,2.))*.5+exp(-length(q)*7.)*.22;r*=smoothstep(.5,.25,max(abs(v.x-.5),abs(v.y-.5)));gl_FragColor=vec4(.1,.7,1.,r*2.*(.85+.15*sin(time*.8)));}`}));m.position.z=-40;scene.add(m)}
+ fragmentShader:`uniform float time;varying vec2 v;void main(){vec2 q=(v-.5)*vec2(1.33,1.);float d=length(q);float r=exp(-pow((d-.075)*22.,2.))*.5+exp(-length(q)*7.)*.22;r*=smoothstep(.5,.3,length(v-.5));gl_FragColor=vec4(.1,.7,1.,r*2.*(.85+.15*sin(time*.8)));}`}));m.position.z=-40;scene.add(m)}
 
 // ---- scanner orbs ----
 const ORB_N=mobile?60:110,OZ=-12,oP=new Float32Array(ORB_N*3),oF=new Float32Array(ORB_N),oS=new Float32Array(ORB_N),OB=[];
@@ -125,6 +125,20 @@ function scan(dt,t){
  for(let k=0;k<ZN;k++){const z=ZP[k];z.t=Math.max(0,z.t-dt*3.2);const a=z.t*z.t;lA[k*2]=a;lA[k*2+1]=a*.9;if(z.i>=0)lP.set([0,0,-30,oP[z.i*3],oP[z.i*3+1],oP[z.i*3+2]],k*6)}
  oG.attributes.position.needsUpdate=true;oG.attributes.flash.needsUpdate=true;lG.attributes.position.needsUpdate=true;lG.attributes.al.needsUpdate=true}
 function zap(i){const o=OB[i];o.done=true;o.f=1;let k=0;for(let q=1;q<ZN;q++)if(ZP[q].t<ZP[k].t)k=q;ZP[k].i=i;ZP[k].t=1}
+
+// matrix glyphs flying out of the tunnel (atlas texture, GPU motion)
+{const gc=document.createElement('canvas');gc.width=gc.height=256;const g2=gc.getContext('2d');g2.fillStyle='#fff';g2.font='bold 26px monospace';g2.textAlign='center';g2.textBaseline='middle';
+ const CH='アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン0123456789012345678901234';for(let i=0;i<64;i++)g2.fillText(CH[i],(i%8)*32+16,(i/8|0)*32+16);
+ const tex=new THREE.CanvasTexture(gc);const n=mobile?60:130,p=new Float32Array(n*3),sd=new Float32Array(n);
+ for(let i=0;i<n;i++){const a=R()*6.283,r=rnd(1.5,8);p.set([Math.cos(a)*r*1.3,Math.sin(a)*r,R()*DEP],i*3);sd[i]=R()}
+ const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(p,3));g.setAttribute('seed',new THREE.BufferAttribute(sd,1));
+ const o=new THREE.Points(g,new THREE.ShaderMaterial({uniforms:Object.assign(U,{gtex:{value:tex}}),transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,
+  vertexShader:`uniform float time,pr,spd,dep;attribute float seed;varying float vA,vG;${ZF}
+  void main(){float z=zz(position.z);vec4 mv=modelViewMatrix*vec4(position.xy,z,1.);gl_Position=projectionMatrix*mv;float d=-z;
+   vA=(.1+.1*seed)*smoothstep(.8,5.,d)*smoothstep(dep,dep*.6,d)*(.75+.25*step(.5,fract(time*3.+seed*17.)));
+   vG=floor(mod(seed*64.+floor(time*(.5+seed*1.5)+seed*9.)*step(.6,seed)*7.,64.));gl_PointSize=pr*(14.+seed*10.)*6./d;}`,
+  fragmentShader:`uniform sampler2D gtex;varying float vA,vG;void main(){vec2 c=(vec2(mod(vG,8.),floor(vG/8.))+vec2(gl_PointCoord.x,gl_PointCoord.y))/8.;float m=texture2D(gtex,c).a;gl_FragColor=vec4(.25,.95,.9,m*vA);}`}));
+ o.frustumCulled=false;scene.add(o)}
 function size(){const w=innerWidth,h=innerHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix()}
 addEventListener('resize',size);size();
 const clock=new THREE.Clock();let lt=0;const loop=()=>{U.time.value=clock.getElapsedTime();const dt=Math.min(.05,U.time.value-lt);lt=U.time.value;scan(dt,U.time.value);camera.position.x=Math.sin(U.time.value*.05)*.3;camera.position.y=Math.cos(U.time.value*.04)*.2;renderer.render(scene,camera)};
