@@ -29,7 +29,7 @@ body:after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;back
 .tm{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;color:#7fa8bd;letter-spacing:.5px;margin-top:3px}.tm.a{color:#cfefff}.tz{font-size:10px;color:#5d8aa8;letter-spacing:1px}
 @media(max-width:760px){.tm{font-size:11px;margin:0 0 0 auto}}
 </style></head><body>
-<canvas id="bg"></canvas><div id="vig" style="position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(ellipse 62% 58% at 50% 50%,rgba(0,5,12,.4),rgba(0,5,12,.12) 72%,rgba(0,0,0,.45))"></div>
+<canvas id="bg"></canvas><div id="vig" style="position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(ellipse 62% 58% at 50% 50%,rgba(0,5,12,.28),rgba(0,5,12,.05) 72%,rgba(0,0,0,.3))"></div>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 <script type="module">
 import * as THREE from 'three';
@@ -89,10 +89,39 @@ pts(28*K|0,()=>{let x=rnd(-1,1),y=rnd(-1,1);if(Math.abs(x)<.45&&R()<.75)x=Math.s
 {const m=new THREE.Mesh(new THREE.PlaneGeometry(7,5.6),new THREE.ShaderMaterial({transparent:true,depthWrite:false,vertexShader:`varying vec2 v;void main(){v=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
  fragmentShader:`varying vec2 v;void main(){float d=length(v-.5)*2.;gl_FragColor=vec4(.0,.005,.01,.9*smoothstep(1.,.3,d));}`}));m.position.z=-34.5;scene.add(m)}
 {const m=new THREE.Mesh(new THREE.PlaneGeometry(60,45),new THREE.ShaderMaterial({uniforms:U,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,vertexShader:`varying vec2 v;void main(){v=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
- fragmentShader:`uniform float time;varying vec2 v;void main(){vec2 q=(v-.5)*vec2(1.3,1.);float d=max(abs(q.x),abs(q.y));float r=exp(-pow((d-.075)*22.,2.))*.5+exp(-length(q)*7.)*.22;r*=smoothstep(.5,.25,max(abs(v.x-.5),abs(v.y-.5)));gl_FragColor=vec4(.08,.65,.95,r*1.3*(.85+.15*sin(time*.8)));}`}));m.position.z=-40;scene.add(m)}
+ fragmentShader:`uniform float time;varying vec2 v;void main(){vec2 q=(v-.5)*vec2(1.3,1.);float d=max(abs(q.x),abs(q.y));float r=exp(-pow((d-.075)*22.,2.))*.5+exp(-length(q)*7.)*.22;r*=smoothstep(.5,.25,max(abs(v.x-.5),abs(v.y-.5)));gl_FragColor=vec4(.1,.7,1.,r*2.*(.85+.15*sin(time*.8)));}`}));m.position.z=-40;scene.add(m)}
+
+// ---- scanner orbs ----
+const ORB_N=mobile?60:110,OZ=-12,oP=new Float32Array(ORB_N*3),oF=new Float32Array(ORB_N),oS=new Float32Array(ORB_N),OB=[];
+for(let i=0;i<ORB_N;i++){OB.push({x:rnd(-1,1),y:rnd(-1,1),vx:rnd(-.02,.02),vy:rnd(-.02,.02),ph:R()*6.28,f:0});oS[i]=R()}
+const oG=new THREE.BufferGeometry();oG.setAttribute('position',new THREE.BufferAttribute(oP,3));oG.setAttribute('flash',new THREE.BufferAttribute(oF,1));oG.setAttribute('seed',new THREE.BufferAttribute(oS,1));
+const orbs=new THREE.Points(oG,new THREE.ShaderMaterial({uniforms:U,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,
+ vertexShader:`uniform float time,pr;attribute float flash,seed;varying float vF,vT;void main(){vF=flash;vT=.6+.4*sin(time*1.1+seed*30.);vec4 mv=modelViewMatrix*vec4(position,1.);gl_Position=projectionMatrix*mv;gl_PointSize=pr*(8.+seed*9.+flash*28.)*12./-mv.z;}`,
+ fragmentShader:`varying float vF,vT;void main(){float d=length(gl_PointCoord-.5)*2.;if(d>1.)discard;float core=smoothstep(.35,0.,d),glow=pow(1.-d,2.5);float ring=vF*smoothstep(.12,0.,abs(d-(1.-vF)*.9-.08));
+ vec3 c=mix(vec3(.2,.8,1.),vec3(.85,1.,1.),vF);gl_FragColor=vec4(c,(core*.9+glow*.45)*(.55+.45*vT)*(.7+vF)+ring*.9);}`}));orbs.frustumCulled=false;scene.add(orbs);
+// scan beam (screen-space wedge sweeping from the centre)
+const beam=new THREE.Mesh(new THREE.PlaneGeometry(2,2),new THREE.ShaderMaterial({uniforms:Object.assign(U,{ang:{value:0},asp:{value:1}}),transparent:true,depthWrite:false,depthTest:false,blending:THREE.AdditiveBlending,
+ vertexShader:`varying vec2 v;void main(){v=position.xy;gl_Position=vec4(position.xy,0.,1.);}`,
+ fragmentShader:`uniform float ang,asp;varying vec2 v;void main(){vec2 p=v*vec2(asp,1.);float a=atan(p.y,p.x);float d=mod(ang-a,6.28318);float r=length(p);
+ float trail=exp(-d*3.2)*.22+smoothstep(.02,0.,d)*.35;float fade=smoothstep(0.,.12,r)*smoothstep(1.9,.4,r);gl_FragColor=vec4(.15,.8,1.,trail*fade);}`}));beam.frustumCulled=false;beam.renderOrder=-1;scene.add(beam);
+// lock-on line from centre to the scanned orb
+const lP=new Float32Array(6),lG=new THREE.BufferGeometry();lG.setAttribute('position',new THREE.BufferAttribute(lP,3));
+const lM=new THREE.LineBasicMaterial({color:0x9ff4ff,transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false});const lockL=new THREE.LineSegments(lG,lM);lockL.frustumCulled=false;scene.add(lockL);
+// bright central core
+pts(1,()=>[0,0,-30,0],`uniform float time,pr;varying float vA;varying vec3 vCol;void main(){vec4 mv=modelViewMatrix*vec4(position,1.);gl_Position=projectionMatrix*mv;vA=.85+.15*sin(time*1.7);vCol=vec3(.5,.95,1.);gl_PointSize=pr*170.;}`,
+ `varying vec3 vCol;varying float vA;void main(){float d=length(gl_PointCoord-.5)*2.;if(d>1.)discard;gl_FragColor=vec4(vCol,vA*(pow(1.-d,3.)*.9+smoothstep(.12,0.,d)));}`);
+let prevA=0,lockT=0,lockI=-1;
+function scan(dt,t){const hw=Math.tan(35*Math.PI/180)*-OZ,ww=hw*camera.aspect,a=(t*.55)%(Math.PI*2);beam.material.uniforms.ang.value=a;beam.material.uniforms.asp.value=camera.aspect;
+ for(let i=0;i<ORB_N;i++){const o=OB[i];o.x+=o.vx*dt;o.y+=o.vy*dt;if(o.x<-1.05)o.x=1.05;if(o.x>1.05)o.x=-1.05;if(o.y<-1.05)o.y=1.05;if(o.y>1.05)o.y=-1.05;
+  const X=o.x*ww+Math.sin(t*.2+o.ph)*.3,Y=o.y*hw+Math.cos(t*.17+o.ph)*.3;oP[i*3]=X;oP[i*3+1]=Y;oP[i*3+2]=OZ;
+  let th=Math.atan2(Y,X*1.);if(th<0)th+=Math.PI*2;const pa=prevA,crossed=pa<=a?(th>pa&&th<=a):(th>pa||th<=a);
+  if(crossed&&Math.hypot(X,Y)>hw*.25){o.f=1;if(lockT<=.2||Math.random()<.35){lockI=i;lockT=1}}
+  o.f=Math.max(0,o.f-dt*.8);oF[i]=o.f}
+ prevA=a;oG.attributes.position.needsUpdate=true;oG.attributes.flash.needsUpdate=true;
+ lockT=Math.max(0,lockT-dt*1.1);if(lockI>=0){lP.set([0,0,OZ,oP[lockI*3],oP[lockI*3+1],OZ]);lG.attributes.position.needsUpdate=true}lM.opacity=lockT*.8}
 function size(){const w=innerWidth,h=innerHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix()}
 addEventListener('resize',size);size();
-const clock=new THREE.Clock();const loop=()=>{U.time.value=clock.getElapsedTime();camera.position.x=Math.sin(U.time.value*.05)*.3;camera.position.y=Math.cos(U.time.value*.04)*.2;renderer.render(scene,camera)};
+const clock=new THREE.Clock();let lt=0;const loop=()=>{U.time.value=clock.getElapsedTime();const dt=Math.min(.05,U.time.value-lt);lt=U.time.value;scan(dt,U.time.value);camera.position.x=Math.sin(U.time.value*.05)*.3;camera.position.y=Math.cos(U.time.value*.04)*.2;renderer.render(scene,camera)};
 renderer.setAnimationLoop(loop);
 document.addEventListener('visibilitychange',()=>{if(document.hidden){renderer.setAnimationLoop(null);clock.stop()}else{clock.start();renderer.setAnimationLoop(loop)}});
 </script>
