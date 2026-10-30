@@ -12,27 +12,33 @@ body:after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;back
 .levs{display:none;gap:3px;padding:6px 24px;justify-content:flex-end}.levs.on{display:flex}
 .levs button{background:rgba(0,229,255,.06);border:1px solid rgba(0,229,255,.3);color:#9fe8ff;padding:4px 8px;border-radius:4px;cursor:pointer;font:11px 'JetBrains Mono',monospace}.levs button.on{background:#00b8d4;color:#001;box-shadow:0 0 10px #00e5ff}
 .warn{color:#ff6b6b;font-size:12px;text-align:right;padding:0 24px 6px;display:none}
-.rows{flex:1;display:flex;flex-direction:column;gap:10px;padding:12px max(24px,6vw) 18px;min-height:0;max-width:1180px;width:100%;margin:0 auto}
-.row{flex:1;min-height:88px;max-height:150px;display:grid;grid-template-columns:42% 29% 29%;border:1.5px solid rgba(160,190,210,.45);border-radius:14px;overflow:hidden;background:rgba(6,14,26,.62);box-shadow:0 0 14px rgba(0,229,255,.08),inset 0 0 20px rgba(0,229,255,.05);position:relative}
+.rows{flex:1;display:flex;flex-direction:column;gap:10px;padding:14px max(14px,5vw) 18px;max-width:880px;width:100%;margin:0 auto}
+.row{position:relative;border:1px solid rgba(125,249,255,.22);border-radius:14px;background:rgba(6,14,26,.6);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);box-shadow:0 0 14px rgba(0,229,255,.07),inset 0 0 20px rgba(0,229,255,.04);padding:12px 16px;overflow:hidden}
 .row:before{content:"";position:absolute;left:0;top:0;width:14px;height:14px;border-left:2px solid #00e5ff;border-top:2px solid #00e5ff;border-radius:14px 0 0 0;opacity:.8}
-.id{background:rgba(255,255,255,.04);color:#e6f7ff;padding:6px 22px;display:flex;flex-direction:column;justify-content:center;font-family:Orbitron,monospace;font-weight:800;line-height:1.15}
-.id .n{font-size:22px;letter-spacing:1px}.id .d{font-size:24px}.id .x{font-size:18px;color:#7df9ff;text-shadow:0 0 8px #00e5ff88}
-.d.LONG{color:#39ff6a;text-shadow:0 0 10px #39ff6a99}.d.SHORT{color:#ff3344;text-shadow:0 0 10px #ff334499}.d.WAIT{color:#9aa7b2}
-.b{display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-family:Orbitron,monospace;font-weight:800;font-size:22px;letter-spacing:1.5px;text-align:center;line-height:1.25;border-left:1px solid rgba(0,229,255,.25);text-shadow:0 1px 3px rgba(0,0,0,.6)}
-.b small{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;opacity:.95;letter-spacing:.5px}
-.grey{background:rgba(140,150,160,.32)}.go{background:rgba(40,230,70,.82);box-shadow:inset 0 0 24px #b6ffc4}.in{background:rgba(60,170,80,.68)}.hold{background:rgba(255,170,0,.8)}.now{background:rgba(255,20,40,.88);animation:bl .8s infinite}.done{background:rgba(100,110,120,.5)}
-@keyframes bl{50%{background:rgba(110,0,10,.9)}}
-.row.GO{border-color:#39ff6a;box-shadow:0 0 22px #39ff6a88}.row.IN{border-color:#4caf50}.row.HOLD{border-color:#ffaa00;box-shadow:0 0 16px #ffaa0066}.row.NOW{border-color:#ff1a2a;box-shadow:0 0 24px #ff1a2aaa}
-.tag{font-size:11px;border:1.5px solid #fff;border-radius:4px;padding:1px 7px;margin-top:4px}
-@media(max-width:760px){.row{grid-template-columns:1fr 1fr;border-radius:12px;min-height:auto;max-height:none}.id{grid-column:1/3;flex-direction:row;gap:12px;align-items:baseline;flex-wrap:wrap;padding:8px 14px}
-.id .n,.id .d,.id .x{font-size:16px}.b{font-size:16px;padding:11px 4px;border-left:none;border-top:1px solid rgba(0,229,255,.25)}.b small{font-size:11px}.rows{padding:8px 10px 12px;gap:8px}.top{padding:8px 12px}.clock{font-size:20px}}
-.tm{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;color:#7fa8bd;letter-spacing:.5px;margin-top:3px}.tm.a{color:#cfefff}.tz{font-size:10px;color:#5d8aa8;letter-spacing:1px}
-@media(max-width:760px){.tm{font-size:11px;margin:0 0 0 auto}}
-.rk{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;color:#5d8aa8;margin-top:2px}.rk b{font-weight:700}.rk .tp{color:#5fe08a}.rk .sl{color:#ff6b78}
-@media(max-width:760px){.rk{font-size:10px}}
-.mt{display:flex;flex-basis:100%;width:100%;align-items:baseline;justify-content:space-between;gap:10px}.mt .rk,.mt .tm{margin-top:2px}.mt .tm{margin-left:auto}
-
-.tk{margin-left:1.2em;font-size:.78em;opacity:.6;letter-spacing:1.5px}
+.hd{display:flex;align-items:center;gap:10px}
+.nm{font-family:Orbitron,monospace;font-weight:800;font-size:18px;letter-spacing:1px;white-space:nowrap}
+.tk{margin-left:.9em;font-size:.72em;opacity:.55;letter-spacing:1.5px}
+.pill{margin-left:auto;font-family:Orbitron,monospace;font-size:11px;font-weight:800;letter-spacing:2px;padding:4px 10px;border-radius:999px;border:1px solid rgba(160,180,200,.4);color:#9aa7b2;background:rgba(140,150,160,.12)}
+.sub{margin-top:6px;font-size:12.5px;color:#8fb8d0}.sub b{color:#e6f7ff;font-weight:700}
+.act{margin-top:10px;border-radius:12px;padding:14px 12px;text-align:center;font-family:Orbitron,monospace}
+.act .big{font-size:34px;font-weight:800;letter-spacing:3px;line-height:1.1}
+.act .lev{font-size:16px;font-weight:800;margin-top:6px;color:#e6f7ff}
+.rk{font-family:'JetBrains Mono',monospace;font-size:13px;margin-top:3px;color:#9fb8c8}.rk .tp{color:#5fe08a}.rk .sl{color:#ff6b78}
+.meta{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:10px;font-size:12.5px;color:#9fc4d6}.meta b{color:#fff}
+.cd{font-variant-numeric:tabular-nums}
+.row.L{border-color:#39ff6a;box-shadow:0 0 22px rgba(57,255,106,.35)}.row.L .act{background:linear-gradient(180deg,rgba(57,255,106,.22),rgba(57,255,106,.08));border:1px solid rgba(57,255,106,.6)}.row.L .big{color:#39ff6a;text-shadow:0 0 14px #39ff6aaa}
+.row.S{border-color:#ff3344;box-shadow:0 0 22px rgba(255,51,68,.35)}.row.S .act{background:linear-gradient(180deg,rgba(255,51,68,.24),rgba(255,51,68,.08));border:1px solid rgba(255,51,68,.65)}.row.S .big{color:#ff4d5c;text-shadow:0 0 14px #ff3344aa}
+.row.C{border-color:#ffb020;box-shadow:0 0 26px rgba(255,176,32,.45)}.row.C .act{background:rgba(255,176,32,.2);border:1px solid #ffb020;animation:pu 1s infinite}.row.C .big{color:#ffc547;text-shadow:0 0 14px #ffb020}
+@keyframes pu{50%{background:rgba(255,176,32,.06)}}
+.res{margin-top:10px;display:flex;align-items:center;gap:12px;border-radius:10px;padding:10px 12px;background:rgba(140,150,160,.1);border:1px solid rgba(160,180,200,.25)}
+.res .st{font-family:Orbitron,monospace;font-weight:800;font-size:15px;letter-spacing:2px;color:#cfd8e0}
+.res .how{flex:1;font-size:13px;color:#cfefff}.res .pnl{font-family:Orbitron,monospace;font-weight:800;font-size:17px}
+.pos{color:#39ff6a}.neg{color:#ff5566}
+.row.I{padding:9px 16px;background:rgba(6,14,26,.42);border-color:rgba(125,249,255,.12);box-shadow:none}.row.I:before{opacity:.35}
+.row.I .nm{font-size:14px;color:#b9d3e0}.row.I .hd{flex-wrap:wrap;row-gap:2px}
+.nx{margin-left:auto;font-size:12.5px;color:#7fa8bd;text-align:right}.nx b{color:#cfefff}.lr{font-size:11px;color:#5d8aa8;margin-left:8px}
+.sec{font-size:10px;letter-spacing:3px;color:#4f7d94;margin:6px 4px -2px}
+@media(min-width:761px){.act .big{font-size:42px}.nm{font-size:20px}}
 </style></head><body>
 <canvas id="bg"></canvas><div id="vig" style="position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(ellipse 62% 58% at 50% 50%,rgba(0,5,12,.28),rgba(0,5,12,.05) 72%,rgba(0,0,0,.3))"></div>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
@@ -151,35 +157,49 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden){renderer.s
 <div class="top"><div class="mode" id="mode"></div><div class="tz" id="tz"></div></div>
 <div class="rows" id="grid"></div>
 <script>
-const P=new URLSearchParams(location.search);let lev=375;const AT=P.get('at');
-const LEVS=[250,300,350,375,400,450,500];let seen=JSON.parse(localStorage.seen||'{}'),snd=false,cfg=null;
-function levBtns(){return;document.getElementById('levs').innerHTML=LEVS.map(l=>`<button class="${l==lev?'on':''}" onclick="setLev(${l})">${l}x</button>`).join('')}
-function setLev(l){lev=l;localStorage.lev=l;levBtns();load()}levBtns();
-if(0)document.getElementById('gear').onclick=()=>document.getElementById('levs').classList.toggle('on');
-if(0)document.getElementById('sound').onclick=()=>{snd=true;if(window.Notification)Notification.requestPermission();beep(660);document.getElementById('sound').textContent='🔔 On'};
-function beep(f){try{const c=new AudioContext(),o=c.createOscillator(),g=c.createGain();o.frequency.value=f;o.connect(g);g.connect(c.destination);g.gain.value=.15;o.start();setTimeout(()=>{o.frequency.value=f*1.5},180);setTimeout(()=>o.stop(),420)}catch(e){}}
-function notify(k,t){if(seen[k])return;seen[k]=1;localStorage.seen=JSON.stringify(seen);if(!snd)return;beep(t.startsWith('CLOSE')?440:880);if(window.Notification&&Notification.permission=='granted')new Notification('MOON SIGNALS',{body:t})}
-const tag=h=>!h?'':/Profit/.test(h)?'TP':/Loss/.test(h)?'SL':'TIME';
 const NAMES={GOLD:'GOLD XAUUSD',SILVER:'SILVER XAGUSD',OIL:'OIL WTI',SPX:'S&P500 SPX',EURUSD:'EUR/USD'},ORDER=['GOLD','SILVER','OIL','SPX','EURUSD'];
 const TZ=(new Intl.DateTimeFormat([], {timeZoneName:'short'}).formatToParts(new Date()).find(p=>p.type=='timeZoneName')||{}).value||'';
-function ft(s){const f=s.fire;if(!f||!f.t)return '';const h=new Date(f.t).toLocaleTimeString([], {hour:'numeric',minute:'2-digit',hour12:true});return `<span class="tm${f.actual?' a':''}">${f.actual?'':'~'}${h}</span>`}
-function tile(s){const t=s.trade,TS=cfg.time_stop_min;let dir='WAIT',rc='',en=['grey','PENDING<br>WAIT'],cl=['grey','CLOSE<br>WAIT'];
- const nm=NAMES[s.sym]||s.label;const [nA,nT]=nm.split(' ');const nmH=nT?`${nA}<span class="tk">${nT}</span>`:nA;
- if(t&&t.side&&s.status!='DONE')dir=t.side;
- switch(s.status){
-  case 'ENTRY':case 'IN TRADE':{const left=Math.max(0,s.secs_left||0),el=TS*60-left;notify(s.id+'e',`${t.side} ${nm}`);
-   if(el<=150){rc='GO';en=['go','CONFIRMED<br>GO']}else{rc='IN';en=['in','IN<br>TRADE']}
-   if(rc=='IN')rc='HOLD';cl=['hold',`CLOSE<br>HOLD<small>${Math.ceil(left/60)}m left</small>`];break}
-  case 'CLOSE NOW':rc='NOW';en=['in','IN<br>TRADE'];cl=['now',`CLOSE<br>NOW<small>${tag(t&&t.how)||'TIME'}</small>`];notify(s.id+'c',`CLOSE ${nm}`);break;
-  case 'DONE':if(t&&t.side){en=['done','ENTERED'];cl=['done',`DONE${t.how?`<span class="tag">${tag(t.how)}</span>`:''}`]}else{en=['grey','NO SIGNAL<br>TODAY']}break;
- }
- return `<div class="row ${rc}"><div class="id"><span class="n">${nmH}</span><span class="d ${dir}">${dir}</span><span class="x">x${lev}</span><span class="mt"><span class="rk"><b class="tp">TP $${cfg.auto_profit}</b> · <b class="sl">SL $${cfg.auto_loss}</b></span>${ft(s)}</span></div><div class="b ${en[0]}">${en[1]}</div><div class="b ${cl[0]}">${cl[1]}</div></div>`}
-async function load(){try{const j=await (await fetch('signals.json?t='+Date.now())).json();if(j.error)throw j.error;cfg=j.cfg;
- 
- 
- const m=document.getElementById('mode');const age=(Date.now()-Date.parse(j.now))/1000;lev=(j.cfg&&j.cfg.leverage)||375;if(j.demo){m.textContent='● DEMO';m.className='mode d'}else if(age>600){m.textContent='● OFFLINE';m.className='mode off'}else if(age>180){m.textContent='● STALE';m.className='mode d'}else{m.textContent='● LIVE';m.className='mode'}
- 
- document.getElementById('grid').innerHTML=ORDER.map(k=>j.symbols.find(x=>x.sym==k)).filter(Boolean).map(tile).join('');
-}catch(e){const m=document.getElementById('mode');m.textContent='● OFFLINE';m.className='mode off'}}
-document.getElementById('tz').textContent=TZ;load();setInterval(load,30000);
+let J=null,seen=JSON.parse(localStorage.seen||'{}');
+const NOW=()=>Date.now()+(window.__off||0);
+const T=iso=>iso?Date.parse(iso):NaN;
+const hm=ms=>new Date(ms).toLocaleTimeString([], {hour:'numeric',minute:'2-digit',hour12:true});
+const day=ms=>{const d=new Date(ms),n=new Date(NOW());return d.toDateString()==n.toDateString()?hm(ms):d.toLocaleDateString([], {weekday:'short'})+' '+hm(ms)};
+function dur(s){s=Math.max(0,Math.floor(s));const d=s/86400|0,h=s%86400/3600|0,m=s%3600/60|0,x=s%60;return d?`${d}d ${h}h ${m}m`:h?`${h}h ${m}m ${String(x).padStart(2,'0')}s`:`${m}m ${String(x).padStart(2,'0')}s`}
+const money=p=>(p>=0?'+':'−')+'$'+Math.abs(p).toFixed(Math.abs(p)%1?2:0);
+function howTxt(t){const h=t.how||'';return /Profit/.test(h)?'Take profit hit':/Loss/.test(h)?'Stop loss hit':/min/.test(h)?'Time stop':h||'Closed'}
+function closeBy(s){const t=s.trade||{};return T(s.close_by_iso)||(T(t.t_in_iso)+J.cfg.time_stop_min*60e3)}
+function phase(s){const t=s.trade||{},n=NOW(),st=s.status;
+ if(st=='CLOSE NOW')return 'CLOSE';
+ if(st=='ENTRY'||st=='IN TRADE')return n>=closeBy(s)?'CLOSE':'GO';
+ if(st=='DONE'&&t.side&&n-T(t.t_out_iso)<30*60e3)return 'RESULT';
+ if(/WAITING|ARMED|PRE-SESSION/.test(st)&&T(s.win&&s.win.orb_start)-n<12*3600e3)return 'WAIT';
+ return 'IDLE'}
+function nameH(s){const nm=NAMES[s.sym]||s.label,[a,b]=nm.split(' ');return `<span class="nm">${a}${b?`<span class="tk">${b}</span>`:''}</span>`}
+function nextSig(s){const n=NOW(),c=[T(s.win&&s.win.entry_from),T(s.fire&&!s.fire.actual&&s.fire.t),T(s.next_session)].filter(x=>x>n);return c.length?Math.min(...c):NaN}
+function riskH(){return `<div class="lev">x${J.cfg.leverage||J.lev||375}</div><div class="rk"><b class="tp">TP $${J.cfg.auto_profit}</b> · <b class="sl">SL $${J.cfg.auto_loss}</b></div>`}
+function row(s){const t=s.trade||{},ph=phase(s),n=NOW();
+ if(ph=='GO'){const L=t.side=='LONG',cb=closeBy(s);notify(s.id+'e',`GO ${t.side} ${NAMES[s.sym]}`);
+  return `<div class="row ${L?'L':'S'}"><div class="hd">${nameH(s)}<span class="pill" style="color:${L?'#39ff6a':'#ff5566'};border-color:currentColor">IN TRADE</span></div>
+  <div class="act"><div class="big">GO ${t.side}</div>${riskH()}</div>
+  <div class="meta"><span>Entered <b>${hm(T(t.t_in_iso))}</b></span><span>Close by <b>${hm(cb)}</b> · <b class="cd">${dur((cb-n)/1000)}</b> left</span></div></div>`}
+ if(ph=='CLOSE'){notify(s.id+'c',`CLOSE ${NAMES[s.sym]}`);const why=s.reason||'Time stop reached';
+  return `<div class="row C"><div class="hd">${nameH(s)}<span class="pill" style="color:#ffc547;border-color:#ffb020">${t.side||''}</span></div>
+  <div class="act"><div class="big">CLOSE NOW</div><div class="rk" style="color:#ffe2a6">${why}${t.t_in_iso?' · entered '+hm(T(t.t_in_iso)):''}</div></div></div>`}
+ if(ph=='RESULT'){const p=+t.pnl||0;
+  return `<div class="row R"><div class="hd">${nameH(s)}<span class="pill">${t.side}</span></div>
+  <div class="res"><span class="st">STOP</span><span class="how">Closed · ${howTxt(t)}<br><span style="color:#7fa8bd;font-size:11.5px">${hm(T(t.t_in_iso))} → ${hm(T(t.t_out_iso))}</span></span><span class="pnl ${p>=0?'pos':'neg'}">${money(p)}</span></div></div>`}
+ if(ph=='WAIT'){const w=s.win||{},ef=T(w.entry_from),eu=T(w.entry_until);
+  const line=n<ef?`Signal window opens <b>${day(ef)}</b> · <b class="cd">${dur((ef-n)/1000)}</b>`:`Watching for breakout until <b>${hm(eu)}</b>`;
+  return `<div class="row W"><div class="hd">${nameH(s)}<span class="pill">WAIT</span></div><div class="sub">${line}</div></div>`}
+ const nx=nextSig(s),lr=t.side&&t.pnl!=null?`<span class="lr">last ${money(+t.pnl)}</span>`:'';
+ return `<div class="row I"><div class="hd">${nameH(s)}<span class="nx">${isNaN(nx)?'Next signal —':`Next signal in <b class="cd">${dur((nx-n)/1000)}</b>`}${lr}</span></div></div>`}
+const RANK={CLOSE:0,GO:1,RESULT:2,WAIT:3,IDLE:4};
+function render(){if(!J)return;const m=document.getElementById('mode'),age=(NOW()-Date.parse(J.now))/1000;
+ if(J.demo){m.textContent='● DEMO';m.className='mode d'}else if(age>600){m.textContent='● OFFLINE';m.className='mode off'}else if(age>180){m.textContent='● STALE';m.className='mode d'}else{m.textContent='● LIVE';m.className='mode'}
+ const S=ORDER.map(k=>J.symbols.find(x=>x.sym==k)).filter(Boolean).map((s,i)=>({s,r:RANK[phase(s)]*10+i})).sort((a,b)=>a.r-b.r);
+ document.getElementById('grid').innerHTML=S.map(o=>row(o.s)).join('')}
+function beep(f){try{const c=new AudioContext(),o=c.createOscillator(),g=c.createGain();o.frequency.value=f;o.connect(g);g.connect(c.destination);g.gain.value=.15;o.start();setTimeout(()=>o.stop(),420)}catch(e){}}
+function notify(k,t){if(seen[k])return;seen[k]=1;localStorage.seen=JSON.stringify(seen)}
+async function load(){try{const j=await (await fetch((window.__src||'signals.json')+'?t='+Date.now())).json();if(j.error)throw j.error;J=j;render()}catch(e){const m=document.getElementById('mode');m.textContent='● OFFLINE';m.className='mode off'}}
+document.getElementById('tz').textContent=TZ;load();setInterval(load,30000);setInterval(render,1000);
 </script></body></html>
