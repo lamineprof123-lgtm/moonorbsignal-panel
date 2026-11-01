@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset="utf-8"><title>MOON SIGNALS</title>
+<!doctype html><html><head><meta charset="utf-8"><title>SIGNALS</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
@@ -15,10 +15,10 @@ body:after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;back
 .rows{flex:1;display:flex;flex-direction:column;gap:10px;padding:14px max(14px,5vw) 18px;max-width:880px;width:100%;margin:0 auto}
 .row{position:relative;border:1px solid rgba(125,249,255,.22);border-radius:14px;background:rgba(6,14,26,.6);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);box-shadow:0 0 14px rgba(0,229,255,.07),inset 0 0 20px rgba(0,229,255,.04);padding:12px 16px;overflow:hidden}
 .row:before{content:"";position:absolute;left:0;top:0;width:14px;height:14px;border-left:2px solid #00e5ff;border-top:2px solid #00e5ff;border-radius:14px 0 0 0;opacity:.8}
-.hd{display:flex;align-items:center;gap:10px}
+.hd{display:flex;align-items:center;gap:8px;flex-wrap:wrap;row-gap:4px}
 .nm{font-family:Orbitron,monospace;font-weight:800;font-size:18px;letter-spacing:1px;white-space:nowrap}
 .tk{margin-left:.9em;font-size:.72em;opacity:.55;letter-spacing:1.5px}
-.pill{margin-left:auto;font-family:Orbitron,monospace;font-size:11px;font-weight:800;letter-spacing:2px;padding:4px 10px;border-radius:999px;border:1px solid rgba(160,180,200,.4);color:#9aa7b2;background:rgba(140,150,160,.12)}
+.pill{margin-left:auto;white-space:nowrap;font-family:Orbitron,monospace;font-size:11px;font-weight:800;letter-spacing:2px;padding:4px 10px;border-radius:999px;border:1px solid rgba(160,180,200,.4);color:#9aa7b2;background:rgba(140,150,160,.12)}
 .sub{margin-top:6px;font-size:12.5px;color:#8fb8d0}.sub b{color:#e6f7ff;font-weight:700}
 .act{margin-top:10px;border-radius:12px;padding:14px 12px;text-align:center;font-family:Orbitron,monospace}
 .act .big{font-size:34px;font-weight:800;letter-spacing:3px;line-height:1.1}
@@ -160,76 +160,67 @@ renderer.setAnimationLoop(loop);
 document.addEventListener('visibilitychange',()=>{if(document.hidden){renderer.setAnimationLoop(null);clock.stop()}else{clock.start();renderer.setAnimationLoop(loop)}});
 </script>
 <div class="top"><div class="mode" id="mode"></div><div class="tz" id="tz"></div></div>
-<div class="rows" id="grid" style="flex:0 0 auto"></div>
-<div class="rows" id="waves" style="padding-top:0"></div>
+<div class="rows" id="grid"></div>
 <script>
-const NAMES={GOLD:'GOLD XAUUSD',SILVER:'SILVER XAGUSD',OIL:'OIL WTI',SPX:'S&P500 SPX',EURUSD:'EUR/USD'},ORDER=['GOLD','SILVER','OIL','SPX','EURUSD'];
+const NAMES={GOLD:['GOLD','XAUUSD'],SILVER:['SILVER','XAGUSD'],OIL:['OIL','WTI'],SPX:['S&P500','SPX'],EURUSD:['EUR/USD','EURUSD']},ORDER=['GOLD','SILVER','OIL','SPX','EURUSD'];
+const RULE={GOLD:'60m range breakout',SILVER:'60m range breakout',OIL:'5m range fade (VWAP side)',SPX:'15m range fade',EURUSD:'15m range breakout'};
 const TZ=(new Intl.DateTimeFormat([], {timeZoneName:'short'}).formatToParts(new Date()).find(p=>p.type=='timeZoneName')||{}).value||'';
-let J=null,seen=JSON.parse(localStorage.seen||'{}');
+let J=null;
 const NOW=()=>Date.now()+(window.__off||0);
 const T=iso=>iso?Date.parse(iso):NaN;
 const hm=ms=>new Date(ms).toLocaleTimeString([], {hour:'numeric',minute:'2-digit',hour12:true});
 const day=ms=>{const d=new Date(ms),n=new Date(NOW());return d.toDateString()==n.toDateString()?hm(ms):d.toLocaleDateString([], {weekday:'short'})+' '+hm(ms)};
 function dur(s){s=Math.max(0,Math.floor(s));const d=s/86400|0,h=s%86400/3600|0,m=s%3600/60|0,x=s%60;return d?`${d}d ${h}h ${m}m`:h?`${h}h ${m}m ${String(x).padStart(2,'0')}s`:`${m}m ${String(x).padStart(2,'0')}s`}
-const money=p=>(p>=0?'+':'−')+'$'+Math.abs(p).toFixed(Math.abs(p)%1?2:0);
-function howTxt(t){const h=t.how||'';return /Profit/.test(h)?'Take profit hit':/Loss/.test(h)?'Stop loss hit':/min/.test(h)?'Time stop':h||'Closed'}
-function closeBy(s){const t=s.trade||{};return T(s.close_by_iso)||(T(t.t_in_iso)+J.cfg.time_stop_min*60e3)}
-function phase(s){const t=s.trade||{},n=NOW(),st=s.status;
- if(st=='CLOSE NOW')return 'CLOSE';
- if(st=='ENTRY'||st=='IN TRADE')return n>=closeBy(s)?'CLOSE':'GO';
- if(st=='DONE'&&t.side&&n-T(t.t_out_iso)<30*60e3)return 'RESULT';
- if(/WAITING|ARMED|PRE-SESSION/.test(st)&&T(s.win&&s.win.orb_start)-n<12*3600e3)return 'WAIT';
- return 'IDLE'}
-function nameH(s){const nm=NAMES[s.sym]||s.label,[a,b]=nm.split(' ');return `<span class="nm">${a}${b?`<span class="tk">${b}</span>`:''}</span>`}
-function nextSig(s){const n=NOW(),c=[T(s.win&&s.win.entry_from),T(s.fire&&!s.fire.actual&&s.fire.t),T(s.next_session)].filter(x=>x>n);return c.length?Math.min(...c):NaN}
-function riskH(){return `<div class="lev">x${J.cfg.leverage||J.lev||375}</div><div class="rk"><b class="tp">TP $${J.cfg.auto_profit}</b> · <b class="sl">SL $${J.cfg.auto_loss}</b></div>`}
-function row(s){const t=s.trade||{},ph=phase(s),n=NOW();
- if(ph=='GO'){const L=t.side=='LONG',cb=closeBy(s);notify(s.id+'e',`GO ${t.side} ${NAMES[s.sym]}`);
-  return `<div class="row ${L?'L':'S'}"><div class="hd">${nameH(s)}<span class="pill" style="color:${L?'#39ff6a':'#ff5566'};border-color:currentColor">IN TRADE</span></div>
-  <div class="act"><div class="big">GO ${t.side}</div>${riskH()}</div>
-  <div class="meta"><span>Entered <b>${hm(T(t.t_in_iso))}</b></span><span>Close by <b>${hm(cb)}</b> · <b class="cd">${dur((cb-n)/1000)}</b> left</span></div></div>`}
- if(ph=='CLOSE'){notify(s.id+'c',`CLOSE ${NAMES[s.sym]}`);const why=s.reason||'Time stop reached';
-  return `<div class="row C"><div class="hd">${nameH(s)}<span class="pill" style="color:#ffc547;border-color:#ffb020">${t.side||''}</span></div>
-  <div class="act"><div class="big">CLOSE NOW</div><div class="rk" style="color:#ffe2a6">${why}${t.t_in_iso?' · entered '+hm(T(t.t_in_iso)):''}</div></div></div>`}
- if(ph=='RESULT'){const p=+t.pnl||0;
-  return `<div class="row R"><div class="hd">${nameH(s)}<span class="pill">${t.side}</span></div>
-  <div class="res"><span class="st">STOP</span><span class="how">Closed · ${howTxt(t)}<br><span style="color:#7fa8bd;font-size:11.5px">${hm(T(t.t_in_iso))} → ${hm(T(t.t_out_iso))}</span></span><span class="pnl ${p>=0?'pos':'neg'}">${money(p)}</span></div></div>`}
- if(ph=='WAIT'){const w=s.win||{},ef=T(w.entry_from),eu=T(w.entry_until);
-  const line=n<ef?`Signal window opens <b>${day(ef)}</b> · <b class="cd">${dur((ef-n)/1000)}</b>`:`Watching for breakout until <b>${hm(eu)}</b>`;
-  return `<div class="row W"><div class="hd">${nameH(s)}<span class="pill">WAIT</span></div><div class="sub">${line}</div></div>`}
- const nx=nextSig(s),lr=t.side&&t.pnl!=null?`<span class="lr">last ${money(+t.pnl)}</span>`:'';
- return `<div class="row I"><div class="hd">${nameH(s)}<span class="nx">${isNaN(nx)?'Next signal —':`Next signal in <b class="cd">${dur((nx-n)/1000)}</b>`}${lr}</span></div></div>`}
-const RANK={CLOSE:0,GO:1,RESULT:2,WAIT:3,IDLE:4};
+const sg=v=>v>=0?'+':'−';
+const mv=(v,fx)=>v==null||isNaN(v)?'—':fx?sg(v)+(Math.abs(v)*1e4).toFixed(1)+' pips':sg(v)+Math.abs(v).toFixed(2)+' pts';
+const pc=v=>v==null||isNaN(v)?'':sg(v)+Math.abs(v).toFixed(2)+'%';
+const px=(v,fx)=>v==null?'—':(+v).toFixed(fx?5:2);
+function howTxt(h){h=h||'';return /Profit/.test(h)?'target hit':/Loss/.test(h)?'stop hit':/min/.test(h)?'time exit':h||'closed'}
+// ---- normalise every signal source into one card model ----
+function fromOrb(s){const t=s.trade||{},n=NOW(),fx=s.sym=='EURUSD',sd=t.side=='LONG'?1:-1,[nm,tk]=NAMES[s.sym];
+ const u={key:s.sym,name:nm,ticker:tk,fx,proven:!!s.proven,rule:RULE[s.sym],bt:s.bt,live:s.live,endTxt:s.proven?'20 min after start':'tested exit'};
+ const cb=T(s.close_by_iso)||(T(t.t_in_iso)+((J.cfg&&J.cfg.time_stop_min)||45)*60e3),st=s.status;
+ if(t.side&&t.t_in_iso){u.dir=sd>0?'UP':'DOWN';u.t0=T(t.t_in_iso);u.entry=t.entry;
+  u.t1=s.proven?u.t0+20*60e3:cb;
+  if(t.exit!=null&&t.t_out_iso){u.ended=true;u.t1=T(t.t_out_iso);u.exit=t.exit;u.mv=sd*(t.exit-t.entry);u.why=howTxt(t.how)}
+  else if(st=='CLOSE NOW'||n>=u.t1){u.ended=true;u.exit=s.price;u.mv=sd*(s.price-t.entry);u.why='time exit'}
+  else{u.ended=false;u.mv=sd*(s.price-t.entry)}
+  u.pct=u.mv/t.entry*100}
+ const w=s.win||{},ef=T(w.entry_from),eu=T(w.entry_until);
+ if(/WAITING|ARMED|PRE-SESSION/.test(st)&&ef-n<12*3600e3&&eu>n)u.watch={from:ef,until:eu,txt:n<ef?null:(s.watch||'Watching for the range signal')};
+ const c=[ef,T(s.fire&&!s.fire.actual&&s.fire.t),T(s.next_session)].filter(x=>x>n);u.next=c.length?Math.min(...c):NaN;
+ const h=(J.history||[]).filter(x=>x.sym==(s.sym=='EURUSD'?'EUR/USD':s.sym)&&x.side&&x.exit!=null)[0];if(h)u.last=(h.side=='LONG'?1:-1)*(h.exit-h.entry);
+ return u}
+function fromWave(w){const n=NOW(),c=w.cur,u={key:w.id,name:w.name.toUpperCase(),ticker:w.ticker,fx:false,proven:w.proven,rule:w.label,endTxt:'end rule',
+ bt:{period:w.backtest.period,horizon:20,hit_rate:w.backtest.hit_rate,signals:w.backtest.signals,avg_pts:w.backtest.avg_pts},live:w.live,last:w.last&&w.last.move_pts};
+ if(c){u.dir=c.dir;u.t0=T(c.t_start);u.t1=T(c.t_end);u.entry=c.entry;u.ended=c.ended;u.mv=c.move_pts;u.pct=c.move_pct;u.exit=c.exit;u.why=c.end_reason}
+ if(w.watch&&n>=T(w.watch.from)&&n<T(w.watch.until))u.watch={from:T(w.watch.from),until:T(w.watch.until),txt:'Watching for a big 3m candle'};
+ u.next=T(w.next_fire);return u}
+function stats(u){const b=u.bt,l=u.live||{};let a='';
+ if(b)a=`Backtest ${b.period}: right <b>${Math.round(b.hit_rate*100)}%</b> of the time ${b.horizon} min after the start, ${b.signals} signals, avg <b>${mv(b.avg_pts,u.fx)}</b> per signal after spread${b.base_hit!=null?` (any day at that time: ${Math.round(b.base_hit*100)}%)`:''}`;
+ const lv=l.signals?`Live record: <b>${l.signals}</b> signal${l.signals>1?'s':''}, right <b>${Math.round(l.hit_rate*100)}%</b>, avg ${mv(l.avg_pts,u.fx)}`:'Live record: no signals yet';
+ return `<div class="stt">${a}<br>${lv}</div>`}
+function nameH(u){return `<span class="nm">${u.name}<span class="tk">${u.ticker}</span></span>${u.proven?'':'<span class="utag">Unproven – tracking</span>'}`}
+function phase(u){const n=NOW();if(u.dir&&!u.ended)return 'GO';if(u.dir&&u.ended&&n-u.t1<30*60e3)return 'STOP';if(u.watch)return 'WAIT';return 'IDLE'}
+function card(u){const n=NOW(),ph=phase(u),mu=u.proven?'':' mu';
+ if(ph=='GO'){const L=u.dir=='UP';
+  return `<div class="row ${L?'L':'S'}${mu}"><div class="hd">${nameH(u)}<span class="pill" style="color:${L?'#39ff6a':'#ff5566'};border-color:currentColor">${L?'▲ UP':'▼ DOWN'}</span></div>
+  <div class="act"><div class="big">GO ${L?'LONG':'SHORT'}</div><div class="rk">Move started <b style="color:#e6f7ff">${hm(u.t0)}</b> at ${px(u.entry,u.fx)} · now <b class="${u.mv>=0?'pos':'neg'}">${mv(u.mv,u.fx)} ${pc(u.pct)}</b></div></div>
+  <div class="meta"><span>Start <b>${hm(u.t0)}</b></span><span>Move end (${u.endTxt}) <b>${hm(u.t1)}</b> · <b class="cd">${dur((u.t1-n)/1000)}</b> left</span></div>${stats(u)}</div>`}
+ if(ph=='STOP')
+  return `<div class="row R${mu}"><div class="hd">${nameH(u)}<span class="pill">${u.dir=='UP'?'▲ UP':'▼ DOWN'}</span></div>
+  <div class="res"><span class="st">STOP</span><span class="how">Move ended · ${u.why||'closed'}<br><span style="color:#7fa8bd;font-size:11.5px">${hm(u.t0)} → ${hm(u.t1)} · ${px(u.entry,u.fx)} → ${px(u.exit,u.fx)}</span></span><span class="pnl ${u.mv>=0?'pos':'neg'}">${mv(u.mv,u.fx)}<br><span style="font-size:12px">${pc(u.pct)}</span></span></div>${stats(u)}</div>`;
+ if(ph=='WAIT'){const w=u.watch,line=n<w.from?`Signal window opens <b>${day(w.from)}</b> · <b class="cd">${dur((w.from-n)/1000)}</b>`:`${w.txt} until <b>${hm(w.until)}</b>`;
+  return `<div class="row W${mu}"><div class="hd">${nameH(u)}<span class="pill">WAIT</span></div><div class="sub">${u.rule} · ${line}</div>${stats(u)}</div>`}
+ const lr=u.last!=null?`<span class="lr">last ${mv(u.last,u.fx)}</span>`:'';
+ return `<div class="row I${mu}"><div class="hd">${nameH(u)}<span class="nx">${isNaN(u.next)?'Next signal —':`Next signal in <b class="cd">${dur((u.next-n)/1000)}</b>`}${lr}</span></div>${stats(u)}</div>`}
+const RANK={GO:0,STOP:1,WAIT:2,IDLE:3};
 function render(){if(!J)return;const m=document.getElementById('mode'),age=(NOW()-Date.parse(J.now))/1000;
  if(J.demo){m.textContent='● DEMO';m.className='mode d'}else if(age>600){m.textContent='● OFFLINE';m.className='mode off'}else if(age>180){m.textContent='● STALE';m.className='mode d'}else{m.textContent='● LIVE';m.className='mode'}
- const S=ORDER.map(k=>J.symbols.find(x=>x.sym==k)).filter(Boolean).map((s,i)=>({s,r:RANK[phase(s)]*10+i})).sort((a,b)=>a.r-b.r);
- document.getElementById('grid').innerHTML=S.map(o=>row(o.s)).join('');renderW()}
-function beep(f){try{const c=new AudioContext(),o=c.createOscillator(),g=c.createGain();o.frequency.value=f;o.connect(g);g.connect(c.destination);g.gain.value=.15;o.start();setTimeout(()=>o.stop(),420)}catch(e){}}
-function notify(k,t){if(seen[k])return;seen[k]=1;localStorage.seen=JSON.stringify(seen)}
+ const U=[...ORDER.map(k=>J.symbols.find(x=>x.sym==k)).filter(Boolean).map(fromOrb),...(J.waves||[]).map(fromWave)];
+ const S=U.map((u,i)=>({u,r:RANK[phase(u)]*100+(u.proven?0:50)+i})).sort((a,b)=>a.r-b.r);
+ document.getElementById('grid').innerHTML=S.map(o=>card(o.u)).join('')}
 async function load(){try{const j=await (await fetch((window.__src||'signals.json')+'?t='+Date.now())).json();if(j.error)throw j.error;J=j;render()}catch(e){const m=document.getElementById('mode');m.textContent='● OFFLINE';m.className='mode off'}}
-
-// ---- Wave signals (move START / END) ----
-const pts=v=>(v>=0?'+':'−')+Math.abs(v).toFixed(2)+' pts';
-const pc=v=>(v>=0?'+':'−')+Math.abs(v).toFixed(2)+'%';
-function wStats(w){const b=w.backtest||{},l=w.live||{};
- const bt=`Backtest ${b.period}: <b>${Math.round(b.hit_rate*100)}% hit</b>, ${b.signals} signals, avg ${pts(b.avg_pts)}`;
- const lv=l.signals?`Live: <b>${l.signals}</b> signal${l.signals>1?'s':''}, <b>${Math.round(l.hit_rate*100)}% hit</b> at END, avg ${pts(l.avg_pts)}`:'Live: no signals yet';
- return `<div class="stt">${bt}<br>${lv}</div>`}
-function wName(w){return `<span class="nm" style="font-size:15px">${w.name.toUpperCase()}<span class="tk">${w.ticker}</span></span>${w.proven?'':`<span class="utag">${w.tag||'Unproven'}</span>`}`}
-function wRow(w){const n=NOW(),c=w.cur,mu=w.proven?'':' mu';
- if(c&&!c.ended){const L=c.dir=='UP',te=T(c.t_end);
-  return `<div class="row wv ${L?'WL':'WS'}${mu}"><div class="hd"><span class="wbig">${L?'▲ START LONG':'▼ START SHORT'}</span><span style="color:#8fb8d0">·</span>${wName(w)}</div>
-  <div class="meta"><span>Entry <b>${c.entry}</b> at <b>${hm(T(c.t_start))}</b></span><span>Live <b class="${c.move_pts>=0?'pos':'neg'}">${pts(c.move_pts)} (${pc(c.move_pct)})</b></span><span>END at <b>${hm(te)}</b> · <b class="cd">${dur((te-n)/1000)}</b></span></div>${wStats(w)}</div>`}
- if(c&&c.ended&&n-T(c.t_end)<30*60e3){
-  return `<div class="row wv WE${mu}"><div class="hd"><span class="wbig">■ END</span><span style="color:#8fb8d0">·</span>${wName(w)}<span class="pill">${c.dir=='UP'?'LONG':'SHORT'}</span></div>
-  <div class="res"><span class="how">Move captured<br><span style="color:#7fa8bd;font-size:11.5px">${hm(T(c.t_start))} → ${hm(T(c.t_end))} · ${c.entry} → ${c.exit} · ${c.end_reason}</span></span><span class="pnl ${c.move_pts>=0?'pos':'neg'}">${pts(c.move_pts)}<br><span style="font-size:12px">${pc(c.move_pct)}</span></span></div>${wStats(w)}</div>`}
- const nx=T(w.next_fire),wa=w.watch,inw=wa&&n>=T(wa.from)&&n<T(wa.until);
- const lr=w.last?`<span class="lr">last ${pts(w.last.move_pts)}</span>`:'';
- const txt=inw?`Watching until <b>${hm(T(wa.until))}</b>`:isNaN(nx)?'Next signal —':`Next signal in <b class="cd">${dur((nx-n)/1000)}</b>`;
- return `<div class="row I${mu}"><div class="hd">${wName(w)}<span class="nx">${txt}${lr}</span></div>${wStats(w)}</div>`}
-function renderW(){const el=document.getElementById('waves');if(!J||!J.waves||!J.waves.length){el.innerHTML='';return}
- const rk=w=>{const c=w.cur,n=NOW();return (c&&!c.ended?0:c&&n-T(c.t_end)<30*60e3?1:2)*10+(w.proven?0:1)};
- el.innerHTML='<div class="sec">WAVE SIGNALS · MOVE START / END</div>'+[...J.waves].sort((a,b)=>rk(a)-rk(b)).map(wRow).join('')}
 {const q=new URLSearchParams(location.search);if(q.get('at'))window.__off=Date.parse(q.get('at'))-Date.now();if(q.get('src'))window.__src=q.get('src')}
 document.getElementById('tz').textContent=TZ;load();setInterval(load,30000);setInterval(render,1000);
 </script></body></html>
