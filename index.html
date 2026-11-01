@@ -39,6 +39,11 @@ body:after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;back
 .nx{margin-left:auto;font-size:12.5px;color:#7fa8bd;text-align:right}.nx b{color:#cfefff}.lr{font-size:11px;color:#5d8aa8;margin-left:8px}
 .sec{font-size:10px;letter-spacing:3px;color:#4f7d94;margin:6px 4px -2px}
 @media(min-width:761px){.act .big{font-size:42px}.nm{font-size:20px}}
+.wv .big{font-size:26px!important}.row.WS{border-color:#ff3344;box-shadow:0 0 20px rgba(255,51,68,.3)}.row.WL{border-color:#39ff6a;box-shadow:0 0 20px rgba(57,255,106,.3)}
+.wbig{font-family:Orbitron,monospace;font-weight:800;font-size:20px;letter-spacing:1.5px;white-space:nowrap}.WS .wbig{color:#ff4d5c;text-shadow:0 0 12px #ff3344aa}.WL .wbig{color:#39ff6a;text-shadow:0 0 12px #39ff6aaa}
+.row.WE .wbig{color:#cfd8e0}.stt{margin-top:7px;font-size:11px;color:#6f93a8;line-height:1.5}.stt b{color:#a9c9d8;font-weight:700}
+.row.mu{opacity:.62;filter:saturate(.45)}.utag{font-size:9.5px;letter-spacing:1.5px;padding:2px 7px;border-radius:999px;border:1px solid #fbbf2488;color:#fbbf24;margin-left:8px;white-space:nowrap}
+@media(max-width:600px){.wbig{font-size:16px}}
 </style></head><body>
 <canvas id="bg"></canvas><div id="vig" style="position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(ellipse 62% 58% at 50% 50%,rgba(0,5,12,.28),rgba(0,5,12,.05) 72%,rgba(0,0,0,.3))"></div>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
@@ -155,7 +160,8 @@ renderer.setAnimationLoop(loop);
 document.addEventListener('visibilitychange',()=>{if(document.hidden){renderer.setAnimationLoop(null);clock.stop()}else{clock.start();renderer.setAnimationLoop(loop)}});
 </script>
 <div class="top"><div class="mode" id="mode"></div><div class="tz" id="tz"></div></div>
-<div class="rows" id="grid"></div>
+<div class="rows" id="grid" style="flex:0 0 auto"></div>
+<div class="rows" id="waves" style="padding-top:0"></div>
 <script>
 const NAMES={GOLD:'GOLD XAUUSD',SILVER:'SILVER XAGUSD',OIL:'OIL WTI',SPX:'S&P500 SPX',EURUSD:'EUR/USD'},ORDER=['GOLD','SILVER','OIL','SPX','EURUSD'];
 const TZ=(new Intl.DateTimeFormat([], {timeZoneName:'short'}).formatToParts(new Date()).find(p=>p.type=='timeZoneName')||{}).value||'';
@@ -197,9 +203,33 @@ const RANK={CLOSE:0,GO:1,RESULT:2,WAIT:3,IDLE:4};
 function render(){if(!J)return;const m=document.getElementById('mode'),age=(NOW()-Date.parse(J.now))/1000;
  if(J.demo){m.textContent='● DEMO';m.className='mode d'}else if(age>600){m.textContent='● OFFLINE';m.className='mode off'}else if(age>180){m.textContent='● STALE';m.className='mode d'}else{m.textContent='● LIVE';m.className='mode'}
  const S=ORDER.map(k=>J.symbols.find(x=>x.sym==k)).filter(Boolean).map((s,i)=>({s,r:RANK[phase(s)]*10+i})).sort((a,b)=>a.r-b.r);
- document.getElementById('grid').innerHTML=S.map(o=>row(o.s)).join('')}
+ document.getElementById('grid').innerHTML=S.map(o=>row(o.s)).join('');renderW()}
 function beep(f){try{const c=new AudioContext(),o=c.createOscillator(),g=c.createGain();o.frequency.value=f;o.connect(g);g.connect(c.destination);g.gain.value=.15;o.start();setTimeout(()=>o.stop(),420)}catch(e){}}
 function notify(k,t){if(seen[k])return;seen[k]=1;localStorage.seen=JSON.stringify(seen)}
 async function load(){try{const j=await (await fetch((window.__src||'signals.json')+'?t='+Date.now())).json();if(j.error)throw j.error;J=j;render()}catch(e){const m=document.getElementById('mode');m.textContent='● OFFLINE';m.className='mode off'}}
+
+// ---- Wave signals (move START / END) ----
+const pts=v=>(v>=0?'+':'−')+Math.abs(v).toFixed(2)+' pts';
+const pc=v=>(v>=0?'+':'−')+Math.abs(v).toFixed(2)+'%';
+function wStats(w){const b=w.backtest||{},l=w.live||{};
+ const bt=`Backtest ${b.period}: <b>${Math.round(b.hit_rate*100)}% hit</b>, ${b.signals} signals, avg ${pts(b.avg_pts)}`;
+ const lv=l.signals?`Live: <b>${l.signals}</b> signal${l.signals>1?'s':''}, <b>${Math.round(l.hit_rate*100)}% hit</b> at END, avg ${pts(l.avg_pts)}`:'Live: no signals yet';
+ return `<div class="stt">${bt}<br>${lv}</div>`}
+function wName(w){return `<span class="nm" style="font-size:15px">${w.name.toUpperCase()}<span class="tk">${w.ticker}</span></span>${w.proven?'':`<span class="utag">${w.tag||'Unproven'}</span>`}`}
+function wRow(w){const n=NOW(),c=w.cur,mu=w.proven?'':' mu';
+ if(c&&!c.ended){const L=c.dir=='UP',te=T(c.t_end);
+  return `<div class="row wv ${L?'WL':'WS'}${mu}"><div class="hd"><span class="wbig">${L?'▲ START LONG':'▼ START SHORT'}</span><span style="color:#8fb8d0">·</span>${wName(w)}</div>
+  <div class="meta"><span>Entry <b>${c.entry}</b> at <b>${hm(T(c.t_start))}</b></span><span>Live <b class="${c.move_pts>=0?'pos':'neg'}">${pts(c.move_pts)} (${pc(c.move_pct)})</b></span><span>END at <b>${hm(te)}</b> · <b class="cd">${dur((te-n)/1000)}</b></span></div>${wStats(w)}</div>`}
+ if(c&&c.ended&&n-T(c.t_end)<30*60e3){
+  return `<div class="row wv WE${mu}"><div class="hd"><span class="wbig">■ END</span><span style="color:#8fb8d0">·</span>${wName(w)}<span class="pill">${c.dir=='UP'?'LONG':'SHORT'}</span></div>
+  <div class="res"><span class="how">Move captured<br><span style="color:#7fa8bd;font-size:11.5px">${hm(T(c.t_start))} → ${hm(T(c.t_end))} · ${c.entry} → ${c.exit} · ${c.end_reason}</span></span><span class="pnl ${c.move_pts>=0?'pos':'neg'}">${pts(c.move_pts)}<br><span style="font-size:12px">${pc(c.move_pct)}</span></span></div>${wStats(w)}</div>`}
+ const nx=T(w.next_fire),wa=w.watch,inw=wa&&n>=T(wa.from)&&n<T(wa.until);
+ const lr=w.last?`<span class="lr">last ${pts(w.last.move_pts)}</span>`:'';
+ const txt=inw?`Watching until <b>${hm(T(wa.until))}</b>`:isNaN(nx)?'Next signal —':`Next signal in <b class="cd">${dur((nx-n)/1000)}</b>`;
+ return `<div class="row I${mu}"><div class="hd">${wName(w)}<span class="nx">${txt}${lr}</span></div>${wStats(w)}</div>`}
+function renderW(){const el=document.getElementById('waves');if(!J||!J.waves||!J.waves.length){el.innerHTML='';return}
+ const rk=w=>{const c=w.cur,n=NOW();return (c&&!c.ended?0:c&&n-T(c.t_end)<30*60e3?1:2)*10+(w.proven?0:1)};
+ el.innerHTML='<div class="sec">WAVE SIGNALS · MOVE START / END</div>'+[...J.waves].sort((a,b)=>rk(a)-rk(b)).map(wRow).join('')}
+{const q=new URLSearchParams(location.search);if(q.get('at'))window.__off=Date.parse(q.get('at'))-Date.now();if(q.get('src'))window.__src=q.get('src')}
 document.getElementById('tz').textContent=TZ;load();setInterval(load,30000);setInterval(render,1000);
 </script></body></html>
