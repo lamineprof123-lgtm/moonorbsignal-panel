@@ -42,7 +42,7 @@ body:after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;back
 .wv .big{font-size:26px!important}.row.WS{border-color:#ff3344;box-shadow:0 0 20px rgba(255,51,68,.3)}.row.WL{border-color:#39ff6a;box-shadow:0 0 20px rgba(57,255,106,.3)}
 .wbig{font-family:Orbitron,monospace;font-weight:800;font-size:20px;letter-spacing:1.5px;white-space:nowrap}.WS .wbig{color:#ff4d5c;text-shadow:0 0 12px #ff3344aa}.WL .wbig{color:#39ff6a;text-shadow:0 0 12px #39ff6aaa}
 .row.WE .wbig{color:#cfd8e0}.stt{margin-top:7px;font-size:11px;color:#6f93a8;line-height:1.5}.stt b{color:#a9c9d8;font-weight:700}
-.row.mu{opacity:.62;filter:saturate(.45)}.utag{font-size:9.5px;letter-spacing:1.5px;padding:2px 7px;border-radius:999px;border:1px solid #fbbf2488;color:#fbbf24;margin-left:8px;white-space:nowrap}
+.utag{font-size:9.5px;letter-spacing:1.5px;padding:2px 7px;border-radius:999px;border:1px solid #fbbf2488;color:#fbbf24;margin-left:8px;white-space:nowrap}
 @media(max-width:600px){.wbig{font-size:16px}}
 </style></head><body>
 <canvas id="bg"></canvas><div id="vig" style="position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(ellipse 62% 58% at 50% 50%,rgba(0,5,12,.28),rgba(0,5,12,.05) 72%,rgba(0,0,0,.3))"></div>
@@ -218,7 +218,7 @@ const RANK={GO:0,STOP:1,WAIT:2,IDLE:3};
 function render(){if(!J)return;const m=document.getElementById('mode'),age=(NOW()-Date.parse(J.now))/1000;
  if(J.demo){m.textContent='● DEMO';m.className='mode d'}else if(age>600){m.textContent='● OFFLINE';m.className='mode off'}else if(age>180){m.textContent='● STALE';m.className='mode d'}else{m.textContent='● LIVE';m.className='mode'}
  const U=[...ORDER.map(k=>J.symbols.find(x=>x.sym==k)).filter(Boolean).map(fromOrb),...(J.waves||[]).map(fromWave)];
- const S=U.map((u,i)=>({u,r:RANK[phase(u)]*100+(u.proven?0:50)+i})).sort((a,b)=>a.r-b.r);
+ const S=U.map((u,i)=>{const p=phase(u),lv=p=='GO'||p=='STOP',nx=isNaN(u.next)?Infinity:u.next;return {u,g:lv?0:1,k:lv?RANK[p]:nx,i}}).sort((a,b)=>a.g-b.g||a.k-b.k||a.i-b.i);
  document.getElementById('grid').innerHTML=S.map(o=>card(o.u)).join('')}
 async function load(){try{const j=await (await fetch((window.__src||'signals.json')+'?t='+Date.now())).json();if(j.error)throw j.error;J=j;render()}catch(e){const m=document.getElementById('mode');m.textContent='● OFFLINE';m.className='mode off'}}
 {const q=new URLSearchParams(location.search);if(q.get('at'))window.__off=Date.parse(q.get('at'))-Date.now();if(q.get('src'))window.__src=q.get('src')}
