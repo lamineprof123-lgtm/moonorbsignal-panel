@@ -200,7 +200,7 @@ function stats(u){const b=u.bt,l=u.live||{};let a='';
  if(b)a=`Backtest ${b.period}: right <b>${Math.round(b.hit_rate*100)}%</b> of the time ${b.horizon} min after the start, ${b.signals} signals, avg <b>${mv(b.avg_pts,u.fx)}</b> per signal after spread${b.base_hit!=null?` (any day at that time: ${Math.round(b.base_hit*100)}%)`:''}`;
  const lv=l.signals?`Live record: <b>${l.signals}</b> signal${l.signals>1?'s':''}, right <b>${Math.round(l.hit_rate*100)}%</b>, avg ${mv(l.avg_pts,u.fx)}`:'Live record: no signals yet';
  return `<div class="stt">${a}<br>${lv}</div>`}
-function nameH(u){return `<span class="nm">${u.name}<span class="tk">${u.ticker}</span></span>${u.proven?'':'<span class="utag">Unproven – tracking</span>'}`}
+function nameH(u){return `<span class="nm">${u.name}<span class="tk">${u.ticker}</span></span>`}
 function phase(u){const n=NOW();if(u.dir&&!u.ended)return 'GO';if(u.dir&&u.ended&&n-u.t1<30*60e3)return 'STOP';if(u.watch)return 'WAIT';return 'IDLE'}
 function card(u){const n=NOW(),ph=phase(u),mu=u.proven?'':' mu';
  if(ph=='GO'){const L=u.dir=='UP';
