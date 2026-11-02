@@ -18,6 +18,7 @@ body:after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;back
 .row:before{content:"";position:absolute;left:0;top:0;width:14px;height:14px;border-left:2px solid #00e5ff;border-top:2px solid #00e5ff;border-radius:14px 0 0 0;opacity:.8}
 .hd{display:flex;align-items:center;gap:8px;flex-wrap:wrap;row-gap:4px}
 .nm{font-family:Orbitron,monospace;font-weight:800;font-size:18px;letter-spacing:1px;white-space:nowrap}
+.dl{margin-left:.7em;font-size:.6em;color:#ffb347;border:1px solid #ffb34766;border-radius:4px;padding:0 .35em;letter-spacing:.5px;vertical-align:middle}
 .tk{margin-left:.9em;font-size:.72em;opacity:.55;letter-spacing:1.5px}
 .pill{margin-left:auto;white-space:nowrap;font-family:Orbitron,monospace;font-size:11px;font-weight:800;letter-spacing:2px;padding:4px 10px;border-radius:999px;border:1px solid rgba(160,180,200,.4);color:#9aa7b2;background:rgba(140,150,160,.12)}
 .sub{margin-top:6px;font-size:12.5px;color:#8fb8d0}.sub b{color:#e6f7ff;font-weight:700}
@@ -223,7 +224,7 @@ const px=(v,fx)=>v==null?'—':(+v).toFixed(fx?5:2);
 function howTxt(h){h=h||'';return /Profit/.test(h)?'target hit':/Loss/.test(h)?'stop hit':/min/.test(h)?'time exit':h||'closed'}
 // ---- normalise every signal source into one card model ----
 function fromOrb(s){const t=s.trade||{},n=NOW(),fx=s.sym=='EURUSD',sd=t.side=='LONG'?1:-1,[nm,tk]=NAMES[s.sym];
- const u={key:s.sym,name:nm,ticker:tk,fx,proven:!!s.proven,rule:RULE[s.sym],bt:s.bt,live:s.live,endTxt:s.proven?'20 min after start':'tested exit'};
+ const u={key:s.sym,name:nm,ticker:tk,fx,proven:!!s.proven,rule:RULE[s.sym],bt:s.bt,live:s.live,lag:s.feed_lag_min,endTxt:s.proven?'20 min after start':'tested exit'};
  const cb=T(s.close_by_iso)||(T(t.t_in_iso)+((J.cfg&&J.cfg.time_stop_min)||45)*60e3),st=s.status;
  if(t.side&&t.t_in_iso){u.dir=sd>0?'UP':'DOWN';u.t0=T(t.t_in_iso);u.entry=t.entry;
   u.t1=s.proven?u.t0+20*60e3:cb;
@@ -245,7 +246,7 @@ function stats(u){return '';const b=u.bt,l=u.live||{};let a='';
  if(b)a=`Backtest ${b.period}: right <b>${Math.round(b.hit_rate*100)}%</b> of the time ${b.horizon} min after the start, ${b.signals} signals, avg <b>${mv(b.avg_pts,u.fx)}</b> per signal after spread${b.base_hit!=null?` (any day at that time: ${Math.round(b.base_hit*100)}%)`:''}`;
  const lv=l.signals?`Live record: <b>${l.signals}</b> signal${l.signals>1?'s':''}, right <b>${Math.round(l.hit_rate*100)}%</b>, avg ${mv(l.avg_pts,u.fx)}`:'Live record: no signals yet';
  return `<div class="stt">${a}<br>${lv}</div>`}
-function nameH(u){return `<span class="nm">${u.name}<span class="tk">${u.ticker}</span></span>`}
+function nameH(u){const d=u.lag>2&&u.lag<90?`<span class="dl">data delay ${Math.round(u.lag)}m</span>`:'';return `<span class="nm">${u.name}<span class="tk">${u.ticker}</span>${d}</span>`}
 function phase(u){const n=NOW();if(u.dir&&!u.ended)return 'GO';if(u.dir&&u.ended&&n-u.t1<30*60e3)return 'STOP';if(u.watch)return 'WAIT';return 'IDLE'}
 function card(u){const n=NOW(),ph=phase(u),mu=u.proven?'':' mu';
  if(ph=='GO'){const L=u.dir=='UP';
