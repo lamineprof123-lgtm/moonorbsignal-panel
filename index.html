@@ -232,7 +232,7 @@ function fromOrb(s){const t=s.trade||{},n=NOW(),fx=s.sym=='EURUSD',sd=t.side=='L
   else{u.ended=false;u.mv=sd*(s.price-t.entry)}
   u.pct=u.mv/t.entry*100}
  const w=s.win||{},ef=T(w.entry_from),eu=T(w.entry_until);
- if(/WAITING|ARMED|PRE-SESSION/.test(st)&&ef-n<12*3600e3&&eu>n)u.watch={from:ef,until:eu,txt:n<ef?null:(s.watch||'Watching for the range signal')};
+ if(/WAITING|ARMED|PRE-SESSION/.test(st)&&ef-n<12*3600e3&&eu>n)u.watch={from:ef,until:eu,orb:T(w.orb_start),txt:n<ef?null:(s.watch||'Watching for the range signal')};
  const c=[ef,T(s.fire&&!s.fire.actual&&s.fire.t),T(s.next_session)].filter(x=>x>n);u.next=c.length?Math.min(...c):NaN;
  const h=(J.history||[]).filter(x=>x.sym==(s.sym=='EURUSD'?'EUR/USD':s.sym)&&x.side&&x.exit!=null)[0];if(h)u.last=(h.side=='LONG'?1:-1)*(h.exit-h.entry);
  return u}
@@ -255,7 +255,7 @@ function card(u){const n=NOW(),ph=phase(u),mu=u.proven?'':' mu';
  if(ph=='STOP')
   return `<div class="row R${mu}"><div class="hd">${nameH(u)}<span class="pill">${u.dir=='UP'?'▲ UP':'▼ DOWN'}</span></div>
   <div class="res"><span class="st">STOP</span><span class="how">Move ended<br><span style="color:#7fa8bd;font-size:11.5px">${hm(u.t0)} → ${hm(u.t1)} · ${px(u.entry,u.fx)} → ${px(u.exit,u.fx)}</span></span><span class="pnl ${u.mv>=0?'pos':'neg'}">${mv(u.mv,u.fx)}<br><span style="font-size:12px">${pc(u.pct)}</span></span></div>${stats(u)}</div>`;
- if(ph=='WAIT'){const w=u.watch,line=n<w.from?`Signal window opens <b>${day(w.from)}</b> · <b class="cd">${dur((w.from-n)/1000)}</b>`:`${w.txt} until <b>${hm(w.until)}</b>`;
+ if(ph=='WAIT'){const w=u.watch,line=n<w.from?(w.orb&&n>=w.orb?`Market open · opening range forming since <b>${hm(w.orb)}</b> · entries from <b>${hm(w.from)}</b> · <b class="cd">${dur((w.from-n)/1000)}</b>`:w.orb?`Opening range starts <b>${day(w.orb)}</b> · entries from <b>${hm(w.from)}</b> · <b class="cd">${dur((w.orb-n)/1000)}</b>`:`Signal window opens <b>${day(w.from)}</b> · <b class="cd">${dur((w.from-n)/1000)}</b>`):`${w.txt} until <b>${hm(w.until)}</b>`;
   return `<div class="row W${mu}"><div class="hd">${nameH(u)}<span class="pill">WAIT</span></div><div class="sub">${line}</div>${stats(u)}</div>`}
  const lr='';
  return `<div class="row I${mu}"><div class="hd">${nameH(u)}<span class="nx">${isNaN(u.next)?'Next signal —':`Next signal in <b class="cd">${dur((u.next-n)/1000)}</b>`}${lr}</span></div>${stats(u)}</div>`}
