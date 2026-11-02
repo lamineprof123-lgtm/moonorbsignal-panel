@@ -3,6 +3,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
 *{box-sizing:border-box}html,body{height:100%}body{margin:0;background:#02030a;color:#e6f7ff;font-family:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;display:flex;flex-direction:column;position:relative;overflow-x:hidden}
+#bgv{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:-3;background:#02030a url(bg_poster.jpg) center/cover;pointer-events:none}#bgo{position:fixed;inset:0;z-index:-2;pointer-events:none;background:rgba(2,3,10,.55)}
 #bg{position:fixed;background:#01070c;inset:0;width:100%;height:100%;z-index:-2}
 body:after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,255,255,.035) 0 1px,transparent 1px 3px)}
 .top{display:flex;align-items:center;gap:16px;padding:10px 24px;flex-wrap:wrap;border-bottom:1px solid rgba(0,229,255,.25);background:rgba(4,10,24,.45);}
@@ -45,9 +46,9 @@ body:after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;back
 .utag{font-size:9.5px;letter-spacing:1.5px;padding:2px 7px;border-radius:999px;border:1px solid #fbbf2488;color:#fbbf24;margin-left:8px;white-space:nowrap}
 @media(max-width:600px){.wbig{font-size:16px}}
 </style></head><body>
-<canvas id="bg"></canvas><div id="vig" style="position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(ellipse 62% 58% at 50% 50%,rgba(0,5,12,.28),rgba(0,5,12,.05) 72%,rgba(0,0,0,.3))"></div>
+<!-- tunnel canvas disabled (restore: uncomment canvas, set script type back to module) <canvas id="bg"></canvas> --><video id="bgv" autoplay muted loop playsinline preload="auto" poster="bg_poster.jpg" aria-hidden="true"><source src="bg.webm" type="video/webm"><source src="bg.mp4" type="video/mp4"></video><div id="bgo"></div><div id="vig" style="position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(ellipse 62% 58% at 50% 50%,rgba(0,5,12,.28),rgba(0,5,12,.05) 72%,rgba(0,0,0,.3))"></div>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
-<script type="module">
+<script type="text/plain" data-disabled="tunnel">
 import * as THREE from 'three';
 const canvas=document.getElementById('bg'),mobile=matchMedia('(max-width:700px)').matches,RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
 const K=mobile?.45:1,DEP=60.,SPEED=RM?.5:2.;
@@ -223,4 +224,4 @@ function render(){if(!J)return;const m=document.getElementById('mode'),age=(NOW(
 async function load(){try{const j=await (await fetch((window.__src||'signals.json')+'?t='+Date.now())).json();if(j.error)throw j.error;J=j;render()}catch(e){const m=document.getElementById('mode');m.textContent='● OFFLINE';m.className='mode off'}}
 {const q=new URLSearchParams(location.search);if(q.get('at'))window.__off=Date.parse(q.get('at'))-Date.now();if(q.get('src'))window.__src=q.get('src')}
 document.getElementById('tz').textContent=TZ;load();setInterval(load,30000);setInterval(render,1000);
-</script></body></html>
+</script><script>{const v=document.getElementById('bgv');if(v){v.muted=true;const p=()=>v.play().catch(()=>{});p();document.addEventListener('touchstart',p,{once:true});document.addEventListener('visibilitychange',()=>{if(!document.hidden)p()})}}</script></body></html>
