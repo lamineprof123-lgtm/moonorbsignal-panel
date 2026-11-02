@@ -3,7 +3,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
 *{box-sizing:border-box}html,body{height:100%}body{margin:0;background:#02030a;color:#e6f7ff;font-family:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;display:flex;flex-direction:column;position:relative;overflow-x:hidden}
-#cbg{position:fixed;inset:0;width:100%;height:100%;z-index:-3;background:#02030a;pointer-events:none;display:block}#bgo{position:fixed;inset:0;z-index:-2;pointer-events:none;background:rgba(2,3,10,.25)}
+#cbg{position:fixed;inset:0;width:100%;height:100%;z-index:-3;background:#02030a;pointer-events:none;display:block}#bgo{position:fixed;inset:0;z-index:-2;pointer-events:none;background:rgba(2,3,10,.06)}
 #bg{position:fixed;background:#01070c;inset:0;width:100%;height:100%;z-index:-2}
 body:after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,255,255,.035) 0 1px,transparent 1px 3px)}
 .top{display:flex;align-items:center;gap:16px;padding:10px 24px;flex-wrap:wrap;border-bottom:1px solid rgba(0,229,255,.25);background:rgba(4,10,24,.45);}
@@ -14,7 +14,7 @@ body:after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;back
 .levs button{background:rgba(0,229,255,.06);border:1px solid rgba(0,229,255,.3);color:#9fe8ff;padding:4px 8px;border-radius:4px;cursor:pointer;font:11px 'JetBrains Mono',monospace}.levs button.on{background:#00b8d4;color:#001;box-shadow:0 0 10px #00e5ff}
 .warn{color:#ff6b6b;font-size:12px;text-align:right;padding:0 24px 6px;display:none}
 .rows{flex:1;display:flex;flex-direction:column;gap:10px;padding:14px max(14px,5vw) 18px;max-width:880px;width:100%;margin:0 auto}
-.row{position:relative;border:1px solid rgba(125,249,255,.22);border-radius:14px;background:rgba(6,14,26,.6);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);box-shadow:0 0 14px rgba(0,229,255,.07),inset 0 0 20px rgba(0,229,255,.04);padding:12px 16px;overflow:hidden}
+.row{position:relative;border:1px solid rgba(125,249,255,.22);border-radius:14px;background:rgba(6,14,26,.38);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);text-shadow:0 1px 3px rgba(0,0,0,.85);box-shadow:0 0 14px rgba(0,229,255,.07),inset 0 0 20px rgba(0,229,255,.04);padding:12px 16px;overflow:hidden}
 .row:before{content:"";position:absolute;left:0;top:0;width:14px;height:14px;border-left:2px solid #00e5ff;border-top:2px solid #00e5ff;border-radius:14px 0 0 0;opacity:.8}
 .hd{display:flex;align-items:center;gap:8px;flex-wrap:wrap;row-gap:4px}
 .nm{font-family:Orbitron,monospace;font-weight:800;font-size:18px;letter-spacing:1px;white-space:nowrap}
@@ -55,50 +55,52 @@ var vs='attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}';
 var fs=`precision mediump float;uniform vec2 R;uniform float T;
 float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
 float n(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h(i),h(i+vec2(1.,0.)),f.x),mix(h(i+vec2(0.,1.)),h(i+vec2(1.,1.)),f.x),f.y);}
-float fb(vec2 p){float v=0.,a=.5;for(int i=0;i<5;i++){v+=a*n(p);p=p*2.03+vec2(1.7,9.2);a*=.5;}return v;}
-float puff(vec2 p){float v=0.,a=.5;for(int i=0;i<5;i++){v+=a*(1.-abs(n(p)*2.-1.));p=p*2.2+vec2(3.1,1.3);a*=.5;}return v;}
-void main(){vec2 uv=gl_FragCoord.xy/R;vec2 q=(gl_FragCoord.xy-.5*R)/R.y;float t=T*.04;
+float fb(vec2 p){float v=0.,a=.5;for(int i=0;i<4;i++){v+=a*n(p);p=p*2.03+vec2(1.7,9.2);a*=.5;}return v;}
+float cl(vec2 p){float v=0.,a=.55;mat2 m=mat2(1.6,1.2,-1.2,1.6);for(int i=0;i<5;i++){float z=n(p)*2.-1.;v+=a*(1.-z*z);p=m*p+vec2(3.1,1.3);a*=.48;}return v;}
+float den(vec2 p,vec2 q,float fl){float b=fb(p*.45+fl*3.);float side=abs(q.x)*1.1-q.y*.9;return b*.85+cl(p*1.6)*.65+side*.42-.84-fl*.06;}
+void main(){vec2 uv=gl_FragCoord.xy/R;vec2 q=(gl_FragCoord.xy-.5*R)/R.y;
 vec2 cp=vec2(.06*sin(T*.21)+.03*sin(T*.53),.18+.04*sin(T*.17));
 vec2 dir=normalize(vec2(.08*cos(T*.21),1.));
-// deep space + violet backlight nebula
-float neb=fb(q*1.3+vec2(0.,T*.03));
-vec3 col=vec3(.01,.012,.035);
-col+=vec3(.38,.18,.9)*pow(neb,2.2)*1.2*smoothstep(1.2,.1,length(q-vec2(-.1,.0)));
-col+=vec3(.25,.25,.85)*.25*pow(fb(q*2.4-t),3.)*1.5;
-vec2 sg=(gl_FragCoord.xy+vec2(0.,T*6.))/2.;float s=h(floor(sg));col+=step(.996,s)*vec3(.8,.75,1.)*(.4+.6*sin(T*1.5+s*90.));
 float dc=length(q-cp);
-// two parallax layers of dark puffy clouds
-for(int L=0;L<2;L++){float fl=float(L);
- vec2 cq=q*(1.1+fl*.9)+vec2(.02*sin(T*.1),T*(.09+fl*.11))+fl*5.3;
- vec2 w=vec2(fb(cq*.8+t*.6),fb(cq*.8-t*.6+4.));
- float d=fb(cq+1.2*w);float p=puff(cq*2.2+w*.7);
- float den=d*.75+p*.32-(fl*.04);
- float m=smoothstep(.52,.56,den);
- float rim=smoothstep(.58,.50,den);
- float sh=clamp((p-.5)*2.,0.,1.);
- vec3 cc=vec3(.025,.03,.075)+vec3(.09,.11,.28)*sh;
- cc+=vec3(.35,.15,.7)*rim*pow(neb,1.5)*.9;
- cc+=vec3(1.,.12,.55)*exp(-dc*11.)*(.2+1.1*sh+rim*1.2);
- col=mix(col,cc,m);}
-// comet
+vec3 col=mix(vec3(.05,.04,.14),vec3(.012,.015,.045),uv.y);
+col+=vec3(.55,.2,.95)*.5*exp(-length((q-cp-vec2(-.1,-.15))*vec2(1.8,1.1))*3.)*(.6+.6*fb(q*2.+vec2(0.,T*.05)));
+col+=vec3(.15,.2,.7)*.12*fb(q*1.5+vec2(4.,T*.03));
+for(int s=0;s<2;s++){float sz=s==0?2.:4.;vec2 sg=(gl_FragCoord.xy+vec2(0.,T*(4.+float(s)*4.)))/sz;vec2 c=floor(sg);float r=h(c+float(s)*17.);
+ vec2 o=fract(sg)-.5;float st=step(.975-float(s)*.005,r)*smoothstep(.35,.0,length(o));col+=st*vec3(.85,.8,1.)*(.35+.65*abs(sin(T*(1.+r*3.)+r*60.)))*(s==0?.7:.9);}
+for(int L=0;L<2;L++){float fl=float(L);float sc=1.5+fl*1.;
+ vec2 p=q*sc+vec2(fl*7.,T*(.07+fl*.09));
+ float d=den(p,q,fl);
+ float m=smoothstep(0.,.05,d);
+ if(m>0.){
+ float e=.035;float dx=den(p+vec2(e,0.),q,fl)-d,dy=den(p+vec2(0.,e),q,fl)-d;
+ vec3 nr=normalize(vec3(-dx/e*.3,-dy/e*.3,1.));
+ vec3 ld=normalize(vec3(cp-q,.35));
+ float dif=max(dot(nr,ld),0.);float bk=max(dot(nr,vec3(0.,.6,.8)),0.);
+ float thick=clamp(d*10.,0.,1.);
+ vec3 cc=vec3(.018,.022,.06)+vec3(.07,.09,.24)*pow(bk,3.);
+ cc+=vec3(.40,.22,.80)*pow(1.-thick,4.)*.45;
+ cc+=vec3(1.,.12,.55)*pow(dif,3.)*exp(-dc*6.)*1.4;
+ cc+=vec3(.9,.15,.6)*exp(-dc*18.)*.35;
+ col=mix(col,cc,m*(1.-fl*.05));}}
 vec2 r=q-cp;float a=dot(r,dir),pr=dot(r,vec2(-dir.y,dir.x));
 float tail=exp(-abs(pr)*700.)*smoothstep(-.65,0.,a)*step(a,0.)*(.5+.5*n(vec2(a*90.+T*8.,1.)));
 col+=vec3(1.,.2,.7)*(tail*1.6+exp(-length(r)*35.)*.9)+vec3(1.,.85,.95)*exp(-length(r)*150.);
 col+=vec3(.7,.05,.45)*exp(-abs(pr)*35.)*smoothstep(-.4,0.,a)*step(a,.03)*.3;
-col*=1.-.5*dot(uv-.5,uv-.5);
-gl_FragColor=vec4(col,1.);}`;
+col*=1.-.35*dot(uv-.5,uv-.5);
+gl_FragColor=vec4(col,1.);}
+`;
 function sh(t,s){var o=gl.createShader(t);gl.shaderSource(o,s);gl.compileShader(o);return o;}
 var pr=gl.createProgram();gl.attachShader(pr,sh(gl.VERTEX_SHADER,vs));gl.attachShader(pr,sh(gl.FRAGMENT_SHADER,fs));gl.linkProgram(pr);gl.useProgram(pr);
 var b=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
 var l=gl.getAttribLocation(pr,'p');gl.enableVertexAttribArray(l);gl.vertexAttribPointer(l,2,gl.FLOAT,false,0,0);
 var uR=gl.getUniformLocation(pr,'R'),uT=gl.getUniformLocation(pr,'T');
-function rs(){var d=Math.min(window.devicePixelRatio||1,1.5)*0.5;c.width=Math.ceil(innerWidth*d);c.height=Math.ceil(innerHeight*d);gl.viewport(0,0,c.width,c.height);gl.uniform2f(uR,c.width,c.height);}
+function rs(){var d=Math.min(window.devicePixelRatio||1,1.5)*0.6;c.width=Math.ceil(innerWidth*d);c.height=Math.ceil(innerHeight*d);gl.viewport(0,0,c.width,c.height);gl.uniform2f(uR,c.width,c.height);}
 addEventListener('resize',rs);rs();var t0=performance.now(),run=true,last=0;
 function f(now){if(!run)return;requestAnimationFrame(f);if(now-last<33)return;last=now;gl.uniform1f(uT,(now-t0)/1000+6);gl.drawArrays(gl.TRIANGLES,0,3);}
 document.addEventListener('visibilitychange',function(){run=!document.hidden;if(run)requestAnimationFrame(f);});requestAnimationFrame(f);
 })();
 </script>
-<div id="bgo"></div><div id="vig" style="position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(ellipse 62% 58% at 50% 50%,rgba(0,5,12,.28),rgba(0,5,12,.05) 72%,rgba(0,0,0,.3))"></div>
+<div id="bgo"></div><div id="vig" style="position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(ellipse 62% 58% at 50% 50%,rgba(0,5,12,.08),rgba(0,5,12,0) 72%,rgba(0,0,0,.18))"></div>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 <script type="text/plain" data-disabled="tunnel">
 import * as THREE from 'three';
