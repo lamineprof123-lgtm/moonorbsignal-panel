@@ -196,7 +196,7 @@ function fromWave(w){const n=NOW(),c=w.cur,u={key:w.id,name:w.name.toUpperCase()
  if(c){u.dir=c.dir;u.t0=T(c.t_start);u.t1=T(c.t_end);u.entry=c.entry;u.ended=c.ended;u.mv=c.move_pts;u.pct=c.move_pct;u.exit=c.exit;u.why=c.end_reason}
  if(w.watch&&n>=T(w.watch.from)&&n<T(w.watch.until))u.watch={from:T(w.watch.from),until:T(w.watch.until),txt:'Watching for a big 3m candle'};
  u.next=T(w.next_fire);return u}
-function stats(u){const b=u.bt,l=u.live||{};let a='';
+function stats(u){return '';const b=u.bt,l=u.live||{};let a='';
  if(b)a=`Backtest ${b.period}: right <b>${Math.round(b.hit_rate*100)}%</b> of the time ${b.horizon} min after the start, ${b.signals} signals, avg <b>${mv(b.avg_pts,u.fx)}</b> per signal after spread${b.base_hit!=null?` (any day at that time: ${Math.round(b.base_hit*100)}%)`:''}`;
  const lv=l.signals?`Live record: <b>${l.signals}</b> signal${l.signals>1?'s':''}, right <b>${Math.round(l.hit_rate*100)}%</b>, avg ${mv(l.avg_pts,u.fx)}`:'Live record: no signals yet';
  return `<div class="stt">${a}<br>${lv}</div>`}
