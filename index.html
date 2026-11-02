@@ -206,13 +206,13 @@ function card(u){const n=NOW(),ph=phase(u),mu=u.proven?'':' mu';
  if(ph=='GO'){const L=u.dir=='UP';
   return `<div class="row ${L?'L':'S'}${mu}"><div class="hd">${nameH(u)}<span class="pill" style="color:${L?'#39ff6a':'#ff5566'};border-color:currentColor">${L?'▲ UP':'▼ DOWN'}</span></div>
   <div class="act"><div class="big">GO ${L?'LONG':'SHORT'}</div><div class="rk">Move started <b style="color:#e6f7ff">${hm(u.t0)}</b> at ${px(u.entry,u.fx)} · now <b class="${u.mv>=0?'pos':'neg'}">${mv(u.mv,u.fx)} ${pc(u.pct)}</b></div></div>
-  <div class="meta"><span>Start <b>${hm(u.t0)}</b></span><span>Move end (${u.endTxt}) <b>${hm(u.t1)}</b> · <b class="cd">${dur((u.t1-n)/1000)}</b> left</span></div>${stats(u)}</div>`}
+  <div class="meta"><span>Start <b>${hm(u.t0)}</b></span><span>Move end <b>${hm(u.t1)}</b> · <b class="cd">${dur((u.t1-n)/1000)}</b> left</span></div>${stats(u)}</div>`}
  if(ph=='STOP')
   return `<div class="row R${mu}"><div class="hd">${nameH(u)}<span class="pill">${u.dir=='UP'?'▲ UP':'▼ DOWN'}</span></div>
-  <div class="res"><span class="st">STOP</span><span class="how">Move ended · ${u.why||'closed'}<br><span style="color:#7fa8bd;font-size:11.5px">${hm(u.t0)} → ${hm(u.t1)} · ${px(u.entry,u.fx)} → ${px(u.exit,u.fx)}</span></span><span class="pnl ${u.mv>=0?'pos':'neg'}">${mv(u.mv,u.fx)}<br><span style="font-size:12px">${pc(u.pct)}</span></span></div>${stats(u)}</div>`;
+  <div class="res"><span class="st">STOP</span><span class="how">Move ended<br><span style="color:#7fa8bd;font-size:11.5px">${hm(u.t0)} → ${hm(u.t1)} · ${px(u.entry,u.fx)} → ${px(u.exit,u.fx)}</span></span><span class="pnl ${u.mv>=0?'pos':'neg'}">${mv(u.mv,u.fx)}<br><span style="font-size:12px">${pc(u.pct)}</span></span></div>${stats(u)}</div>`;
  if(ph=='WAIT'){const w=u.watch,line=n<w.from?`Signal window opens <b>${day(w.from)}</b> · <b class="cd">${dur((w.from-n)/1000)}</b>`:`${w.txt} until <b>${hm(w.until)}</b>`;
-  return `<div class="row W${mu}"><div class="hd">${nameH(u)}<span class="pill">WAIT</span></div><div class="sub">${u.rule} · ${line}</div>${stats(u)}</div>`}
- const lr=u.last!=null?`<span class="lr">last ${mv(u.last,u.fx)}</span>`:'';
+  return `<div class="row W${mu}"><div class="hd">${nameH(u)}<span class="pill">WAIT</span></div><div class="sub">${line}</div>${stats(u)}</div>`}
+ const lr='';
  return `<div class="row I${mu}"><div class="hd">${nameH(u)}<span class="nx">${isNaN(u.next)?'Next signal —':`Next signal in <b class="cd">${dur((u.next-n)/1000)}</b>`}${lr}</span></div>${stats(u)}</div>`}
 const RANK={GO:0,STOP:1,WAIT:2,IDLE:3};
 function render(){if(!J)return;const m=document.getElementById('mode'),age=(NOW()-Date.parse(J.now))/1000;
